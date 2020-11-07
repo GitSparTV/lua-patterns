@@ -143,12 +143,12 @@ function ReadQuantity(lex) {
 
 function ReadEscape(lex) {
 	if (lex.IsLast()) throw new Error("malformed pattern (ends with '%')")
-	lex.Next()
 	if (MatchClass(lex.current)) {
 		lex.AddToken(TOK.CLASS, lex.current)
 	} else {
 		lex.AddToken(TOK.ESCAPED, lex.current)
 	}
+	lex.Next()
 }
 
 function ReadSet(lex) {
