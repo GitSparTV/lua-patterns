@@ -158,13 +158,12 @@ function ReadSet(lex) {
 	do {
 		if (lex.IsEnd()) throw new Error("malformed pattern (missing ']')")
 		if (lex.current == "%" && lex.caret < lex.end) {
+			lex.Next()
 			ReadEscape(lex)
 		} else {
-			if (lex.Lookahead() == "-") {
-
-			}
+			lex.AddToken(TOK.CHAR, lex.current)
+			lex.Next()
 		}
-		lex.Next()
 	} while (lex.current != "]")
 	lex.AddToken(TOK.RBRACKET)
 	lex.Next()
@@ -173,9 +172,8 @@ function ReadSet(lex) {
 function ParsePattern(input) {
 	let lex = new Lexer(input)
 	lex.Next()
-	if (lex.current == "^") {
+	if (lex.CheckNext("^")) {
 		lex.AddToken(TOK.START)
-		lex.Next()
 	}
 	print("Str", input)
 	print("Len", input.length)
@@ -205,16 +203,47 @@ function ParsePattern(input) {
 					}
 				break
 				case "%":
-					print("%")
-					ReadEscape(lex)
+					lex.Next()
+					print("%", lex.current)
+					switch (lex.current) {
+						case "b":
+							if (lex.caret + 2 >= lex.end) throw new Error("malformed pattern (missing arguments to '%b')");
+							lex.AddToken(TOK.BALANCED, lex.Sub(lex.caret + 1, lex.caret + 3))
+							lex.Next()
+							lex.Next()
+							lex.Next()
+						break
+						case "f":
+							lex.Next()
+							if (lex.current != "[") throw new Error("missing '[' after '%f' in pattern");
+							lex.AddToken(TOK.FRONTIER)
+							ReadSet(lex)
+						break
+						case '0': case '1': case '2': case '3':
+						case '4': case '5': case '6': case '7':
+						case '8': case '9':
+							lex.AddToken(TOK.CAPTUREREF,lex.current)
+							lex.Next()
+						break
+						default:
+							ReadEscape(lex)
+							ReadQuantity(lex)
+						break
+					}
 				break
 				case "[":
 					print("[")
 					ReadSet(lex)
 					ReadQuantity(lex)
 				break
+				case ".":
+					print(".")
+					lex.AddToken(TOK.ANY)
+					lex.Next()
+					ReadQuantity(lex)
+				break
 				default:
-					print("default", lex.current)
+					print("char", lex.current)
 					lex.AddToken(TOK.CHAR, lex.current)
 					lex.Next()
 					ReadQuantity(lex)
@@ -269,4 +298,46 @@ function ParsePattern(input) {
 	// }
 }
 
-ParsePattern("[^abc%]%a]+")
+ParsePattern("^^abc[set]+q+w*e-r?%((t.)%)%b()%f[^a-zA-Z%s]%1$$")
+/*
+^					+
+^					+
+a					+
+b					+
+c					+
+[					+
+	s				+
+	e				+
+	t				+
+]					+
+	+				+
+q					+
+	+				+
+w					+
+	*				+
+e					+
+	-				+
+r					+
+	?				+
+%(					+
+(					+
+	t				+
+	.				-
+)					+
+%)					+
+%b()				+
+%f					+
+	[				+
+		^			+
+		a			+
+		-			+
+		z			+
+		A			+
+		-			+
+		Z			+
+		%s			+
+	]				
+%1					
+$					
+$					
+*/
