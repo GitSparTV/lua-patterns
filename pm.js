@@ -35,6 +35,10 @@ const TokToStr = [
 	"RPAR",
 ]
 
+function debuglog(...varg) {
+	// console.log(varg)
+}
+
 class Token {
 	constructor(tk, str) {
 		this.type = tk
@@ -48,7 +52,7 @@ class Lexer {
 		this.len = str.length - 1
 		this.tokens = []
 		this.current = ""
-		this.caret = 0
+		this.caret = -1
 	}
 
 	Next() {
@@ -56,9 +60,25 @@ class Lexer {
 	}
 }
 
-function debuglog(...varg) {
-	// console.log(varg)
+function match_class(cl) {
+	switch (cl.toLowerCase()) {
+		case 'a': return true;
+		case 'c': return true;
+		case 'd': return true;
+		case 'g': return true;
+		case 'l': return true;
+		case 'L': return true;
+		case 'p': return true;
+		case 's': return true;
+		case 'S': return true;
+		case 'u': return true;
+		case 'w': return true;
+		case 'x': return true;
+		case 'z': return true;
+		default: return false;
+	}
 }
+
 
 function ParsePattern(input) {
 	const Tokens = []
@@ -72,34 +92,6 @@ function ParsePattern(input) {
 	debuglog("Str", input)
 	debuglog("Len", input.length)
 	try {
-		function match_class(cl) {
-			switch (cl) {
-				case 'a': return true;
-				case 'A': return true;
-				case 'c': return true;
-				case 'C': return true;
-				case 'd': return true;
-				case 'D': return true;
-				case 'g': return true;
-				case 'G': return true;
-				case 'l': return true;
-				case 'L': return true;
-				case 'p': return true;
-				case 'P': return true;
-				case 's': return true;
-				case 'S': return true;
-				case 'u': return true;
-				case 'U': return true;
-				case 'w': return true;
-				case 'W': return true;
-				case 'x': return true;
-				case 'X': return true;
-				case 'z': return true;
-				case 'z': return true;
-				default: return false;
-			}
-		};
-
 		function classend() {
 			switch (input.charAt(caret)) {
 				case "%":
