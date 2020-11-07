@@ -1,19 +1,21 @@
-const TOK_START = 0 // ^
-const TOK_END = 1 // $
-const TOK_ANY = 2 // .
-const TOK_SET = 3 // [set]
-const TOK_0ORMORE = 4 // *
-const TOK_1ORMORE = 5 // +
-const TOK_0ORMORELAZY = 6 // -
-const TOK_0OR1 = 7 // ?
-const TOK_CHAR = 8 // literal
-const TOK_CAPTURE = 9 // %num
-const TOK_FRONTIER = 10 // %f[]
-const TOK_BALANCED = 11 // %b
-const TOK_CLASS = 12 // %class
-const TOK_ESCAPED = 13 // %escaped
-const TOK_LPAR = 14 // (
-const TOK_RPAR = 15 // )
+const TOK = Object.freeze({
+	START: 0, // ^
+	END: 1, // $
+	ANY: 2, // .
+	SET: 3, // [set]
+	ZEROORMORE: 4, // *
+	ONEORMORE: 5, // +
+	ZEROORMORELAZY: 6, // -
+	ZEROORONE: 7, // ?
+	CHAR: 8, // literal
+	CAPTURE: 9, // %num
+	FRONTIER: 10, // %f[]
+	BALANCED: 11, // %b
+	CLASS: 12, // %class
+	ESCAPED: 13, // %escaped
+	LPAR: 14, // (
+	RPAR: 15, // )
+})
 const TokToStr = [
 	"START",
 	"END",
