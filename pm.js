@@ -2,42 +2,29 @@ const TOK = Object.freeze({
 	START: 0, // ^
 	END: 1, // $
 	ANY: 2, // .
-	SET: 3, // [set]
-	ZEROORMORE: 4, // *
-	ONEORMORE: 5, // +
-	ZEROORMORELAZY: 6, // -
-	ZEROORONE: 7, // ?
-	CHAR: 8, // literal
-	CAPTURE: 9, // %num
-	FRONTIER: 10, // %f[]
-	BALANCED: 11, // %b
-	CLASS: 12, // %class
-	ESCAPED: 13, // %escaped
-	LPAR: 14, // (
-	RPAR: 15, // )
+	ZEROORMORE: 3, // *
+	ONEORMORE: 4, // +
+	ZEROORMORELAZY: 5, // -
+	ZEROORONE: 6, // ?
+	CHAR: 7, // literal
+	LPAR: 8, // (
+	RPAR: 9, // )
 })
 const TokToStr = [
 	"START",
 	"END",
 	"ANY",
-	"SET",
-	"0ORMORE",
-	"1ORMORE",
-	"0ORMORELAZY",
-	"0OR1",
+	"ZEROORMORE",
+	"ONEORMORE",
+	"ZEROORMORELAZY",
+	"ZEROORONE",
 	"CHAR",
-	"CAPTURE",
-	"FRONTIER",
-	"BALANCED",
-	"CLASS",
-	"ESCAPED",
 	"LPAR",
 	"RPAR",
 ]
 
-function debuglog(...varg) {
-	// console.log(varg)
-}
+print = console.log
+// print = function() {}
 
 class Token {
 	constructor(tk, str) {
