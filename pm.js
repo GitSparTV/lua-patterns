@@ -36,19 +36,49 @@ class Token {
 class Lexer {
 	constructor(str) {
 		this.input = str
-		this.len = str.length - 1
+		this.len = str.length
+		this.end = str.length - 1
 		this.tokens = []
 		this.current = ""
 		this.caret = -1
+		this.rem = null
 	}
 
 	Next() {
 		this.current = this.input.charAt(++this.caret)
 	}
+
+	CheckNext(char) {
+		if (this.current == char) {
+			this.Next()
+			return true
+		}
+		return false
+	}
+
+	IsEnd() {
+		return this.caret >= this.len
+	}
+
+	IsLast() {
+		return this.caret == this.end
+	}
+
+	Remember() {
+		this.rem = this.caret
+	}
+
+	Remind() {
+		return this.rem
+	}
+
+	AddToken(type, info) {
+		this.tokens.push(new Token(type, info))
+	}
 }
 
-function match_class(cl) {
-	switch (cl.toLowerCase()) {
+function MatchClass(char) {
+	switch (char.toLowerCase()) {
 		case 'a': return true;
 		case 'c': return true;
 		case 'd': return true;
