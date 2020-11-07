@@ -14,6 +14,9 @@ const TOK = Object.freeze({
 	RBRACKET: 12, // ]
 	INVERSE: 13, // ^ in set
 	CLASS: 14, // %class
+	CAPTUREREF: 15, // %1
+	BALANCED: 16, // %b
+	FRONTIER: 17, // %f
 })
 const TokToStr = [
 	"START",
@@ -31,6 +34,9 @@ const TokToStr = [
 	"RBRACKET",
 	"INVERSE",
 	"CLASS",
+	"CAPTUREREF",
+	"BALANCED",
+	"FRONTIER",
 ]
 
 print = console.log
