@@ -96,161 +96,104 @@ function MatchClass(char) {
 	}
 }
 
+function ReadQuantity(lex) {
+	
+}
 
 function ParsePattern(input) {
-	const Tokens = []
-	let error
-	let caret = 0
-	let char = input.charAt(caret)
-	if (char == "^") {
-		Tokens.push(new Token(TOK_START))
-		caret++
+	let lex = new Lexer(input)
+	lex.Next()
+	if (lex.current == "^") {
+		lex.AddToken(TOK.START)
+		lex.Next()
 	}
-	debuglog("Str", input)
-	debuglog("Len", input.length)
+	print("Str", input)
+	print("Len", input.length)
+	let error
 	try {
-		function classend() {
-			switch (input.charAt(caret)) {
-				case "%":
-					debuglog("classend%")
-					if (caret == input.length - 1) throw new Error("malformed pattern (ends with '%')");
-					return caret + 1
-				case "[":
-					debuglog("classend[")
-					if (input.charAt(caret) == "^") { debuglog("^"); caret++; }
-					do {
-						if (caret == input.length - 1) throw new Error("malformed pattern (missing ']')");
-						if (input.charAt(caret++) == "%" && caret < input.length - 1) caret++;
-					} while (input.charAt(caret) != "]")
-					return caret + 1
-				default:
-					return caret
-			}
-		}
-
-		for (; caret < input.length; caret++) {
-			let char = input.charAt(caret)
-			let start
-			switch (char) {
+		while (!lex.IsEnd()) {
+			print(lex.current)
+			switch (lex.current) {
 				case "(":
-					debuglog("(")
-					Tokens.push(new Token(TOK_LPAR))
-					break
+					print("(")
+					lex.AddToken(TOK.LPAR)
+					lex.Next()
+				break
 				case ")":
-					debuglog(")")
-					Tokens.push(new Token(TOK_RPAR))
-					break
+					print(")")
+					lex.AddToken(TOK.RPAR)
+					lex.Next()
+					ReadQuantity(lex)
+				break
 				case "$":
-					debuglog("$")
-					if (caret == input.length - 1) {
-						Tokens.push(new Token(TOK_END))
+					print("$")
+					if (lex.IsLast()) {
+						lex.AddToken(TOK.END)
+						lex.Next()
 					} else {
-						Tokens.push(new Token(TOK_CHAR, char))
+						lex.AddToken(TOK.CHAR, lex.current)
+						lex.Next()
+						ReadQuantity(lex)
 					}
-					break
+				break
 				case "%":
-					debuglog("%")
-					let lookahead = input.charAt(caret + 1)
-					switch (lookahead) {
-						case "b":
-							debuglog("%b")
-							if (caret + 3 > input.length - 1) throw new Error("malformed pattern (missing arguments to '%b')")
-							start = caret
-							caret += 3
-							Tokens.push(new Token(TOK_BALANCED, input.substring(start + 2, start + 4)))
-							break
-						case "f":
-							debuglog("%f")
-							caret += 2
-							if (input.charAt(caret) != "[") throw new Error("missing '[' after '%f' in pattern");
-							start = caret
-							Tokens.push(new Token(TOK_FRONTIER, input.substring(start + 1, classend() - 1)))
-							break
-						case '0': case '1': case '2': case '3':
-						case '4': case '5': case '6': case '7':
-						case '8': case '9':
-							debuglog("%num")
-							Tokens.push(new Token(TOK_CAPTURE, lookahead))
-							break
-						default:
-							classend()
-							if (match_class(lookahead)) {
-								debuglog("%class")
-								Tokens.push(new Token(TOK_CLASS, lookahead))
-							} else {
-								debuglog("%escaped")
-								Tokens.push(new Token(TOK_ESCAPED, lookahead))
-							}
-							caret++
-							break
-					}
-					break
-				case ".":
-					debuglog(".")
-					Tokens.push(new Token(TOK_ANY, char))
-					break
+					print("%")
+					lex.Next()
+				break
 				case "[":
-					start = caret
-
-					debuglog("[]", input.charAt(caret))
-					Tokens.push(new Token(TOK_SET, input.substring(start + 1, classend() - 1)))
-					break
-				case "+":
-					Tokens.push(new Token(TOK_1ORMORE))
-					break
-				case "-":
-					Tokens.push(new Token(TOK_0ORMORELAZY))
-					break
-				case "*":
-					Tokens.push(new Token(TOK_0ORMORE))
-					break
-				case "?":
-					Tokens.push(new Token(TOK_0OR1))
-					break
+					print("[")
+					lex.Next()
+				break
 				default:
-					debuglog("default", char)
-					Tokens.push(new Token(TOK_CHAR, char))
-					break
+					print("default", lex.current)
+					lex.AddToken(TOK.CHAR, lex.current)
+					lex.Next()
+					ReadQuantity(lex)
+				break
 			}
 		}
 	}
 	catch (e) {
+		print(e.name + ": " + e.message)
 		error = e.name + ": " + e.message
 	}
 
-	const result = document.getElementById('result');
-	while (result.firstChild) {
-		result.removeChild(result.firstChild);
-	}
+	console.log(lex.tokens)
+	// const result = document.getElementById('result');
+	// while (result.firstChild) {
+	// 	result.removeChild(result.firstChild);
+	// }
 
-	for (const token of Tokens) {
-		let element = document.createElement("div");
-		let p = document.createElement("a")
-		p.className = "input"
-		let name = document.createElement("a")
-		name.className = "name"
-		let description = document.createElement("a")
-		description.className = "description"
-		element.className = "token"
-		if (token.type == TOK_CHAR) {
-			p.appendChild(document.createTextNode(token.string))
-			name.appendChild(document.createTextNode("Character."))
-			description.appendChild(document.createTextNode("Matches literal character."))
-			element.id = "char"
-		} else {
-			p.appendChild(document.createTextNode((token.string ? "[" + (token.string) + "] " : "") + TokToStr[token.type]))
-			element.id = "token"
-		}
-		element.appendChild(p)
-		element.appendChild(name)
-		element.appendChild(description)
-		result.appendChild(element)
-	}
+	// for (const token of Tokens) {
+	// 	let element = document.createElement("div");
+	// 	let p = document.createElement("a")
+	// 	p.className = "input"
+	// 	let name = document.createElement("a")
+	// 	name.className = "name"
+	// 	let description = document.createElement("a")
+	// 	description.className = "description"
+	// 	element.className = "token"
+	// 	if (token.type == TOK.CHAR) {
+	// 		p.appendChild(document.createTextNode(token.string))
+	// 		name.appendChild(document.createTextNode("Character."))
+	// 		description.appendChild(document.createTextNode("Matches literal character."))
+	// 		element.id = "char"
+	// 	} else {
+	// 		p.appendChild(document.createTextNode((token.string ? "[" + (token.string) + "] " : "") + TokToStr[token.type]))
+	// 		element.id = "token"
+	// 	}
+	// 	element.appendChild(p)
+	// 	element.appendChild(name)
+	// 	element.appendChild(description)
+	// 	result.appendChild(element)
+	// }
 
-	if (error) {
-		let element = document.createElement("div");
-		element.className = "error"
-		element.appendChild(document.createTextNode(error))
-		result.appendChild(element)
-	}
+	// if (error) {
+	// 	let element = document.createElement("div");
+	// 	element.className = "error"
+	// 	element.appendChild(document.createTextNode(error))
+	// 	result.appendChild(element)
+	// }
 }
+
+ParsePattern("hello$$")
