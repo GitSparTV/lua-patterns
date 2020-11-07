@@ -65,7 +65,7 @@ class Lexer {
 	}
 
 	Lookahead() {
-		return this.input.charAt(this.caret)
+		return this.input.charAt(this.caret+1)
 	}
 
 	CheckNext(char) {
@@ -94,6 +94,10 @@ class Lexer {
 
 	AddToken(type, info) {
 		this.tokens.push(new Token(type, info))
+	}
+
+	Sub(a, b) {
+		return this.input.substring(a, b)
 	}
 }
 
