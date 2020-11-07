@@ -9,6 +9,11 @@ const TOK = Object.freeze({
 	CHAR: 7, // literal
 	LPAR: 8, // (
 	RPAR: 9, // )
+	ESCAPED: 10, // %escaped
+	LBRACKET: 11, // [
+	RBRACKET: 12, // ]
+	INVERSE: 13, // ^ in set
+	CLASS: 14, // %class
 })
 const TokToStr = [
 	"START",
@@ -21,6 +26,11 @@ const TokToStr = [
 	"CHAR",
 	"LPAR",
 	"RPAR",
+	"ESCAPED",
+	"LBRACKET",
+	"RBRACKET",
+	"INVERSE",
+	"CLASS",
 ]
 
 print = console.log
@@ -28,7 +38,7 @@ print = console.log
 
 class Token {
 	constructor(tk, str) {
-		this.type = tk
+		this.type = TokToStr[tk]
 		this.string = str
 	}
 }
@@ -36,8 +46,8 @@ class Token {
 class Lexer {
 	constructor(str) {
 		this.input = str
-		this.len = str.length
-		this.end = str.length - 1
+		this.end = str.length
+		this.len = str.length - 1
 		this.tokens = []
 		this.current = ""
 		this.caret = -1
@@ -46,6 +56,10 @@ class Lexer {
 
 	Next() {
 		this.current = this.input.charAt(++this.caret)
+	}
+
+	Lookahead() {
+		return this.input.charAt(this.caret)
 	}
 
 	CheckNext(char) {
@@ -57,11 +71,11 @@ class Lexer {
 	}
 
 	IsEnd() {
-		return this.caret >= this.len
+		return this.caret >= this.end
 	}
 
 	IsLast() {
-		return this.caret == this.end
+		return this.caret == this.len
 	}
 
 	Remember() {
