@@ -111,7 +111,53 @@ function MatchClass(char) {
 }
 
 function ReadQuantity(lex) {
-	
+	switch (lex.current) {
+		case "+":
+			lex.AddToken(TOK.ONEORMORE)
+			lex.Next()
+		break
+		case "-":
+			lex.AddToken(TOK.ZEROORMORELAZY)
+			lex.Next()
+		break
+		case "*":
+			lex.AddToken(TOK.ZEROORMORE)
+			lex.Next()
+		break
+		case "?":
+			lex.AddToken(TOK.ZEROORONE)
+			lex.Next()
+		break
+	}
+}
+
+function ReadEscape(lex) {
+	if (lex.IsLast()) throw new Error("malformed pattern (ends with '%')")
+	lex.Next()
+	if (MatchClass(lex.current)) {
+		lex.AddToken(TOK.CLASS, lex.current)
+	} else {
+		lex.AddToken(TOK.ESCAPED, lex.current)
+	}
+}
+
+function ReadSet(lex) {
+	lex.AddToken(TOK.LBRACKET)
+	lex.Next()
+	if (lex.CheckNext("^")) lex.AddToken(TOK.INVERSE);
+	do {
+		if (lex.IsEnd()) throw new Error("malformed pattern (missing ']')")
+		if (lex.current == "%" && lex.caret < lex.end) {
+			ReadEscape(lex)
+		} else {
+			if (lex.Lookahead() == "-") {
+
+			}
+		}
+		lex.Next()
+	} while (lex.current != "]")
+	lex.AddToken(TOK.RBRACKET)
+	lex.Next()
 }
 
 function ParsePattern(input) {
@@ -126,7 +172,6 @@ function ParsePattern(input) {
 	let error
 	try {
 		while (!lex.IsEnd()) {
-			print(lex.current)
 			switch (lex.current) {
 				case "(":
 					print("(")
@@ -137,7 +182,6 @@ function ParsePattern(input) {
 					print(")")
 					lex.AddToken(TOK.RPAR)
 					lex.Next()
-					ReadQuantity(lex)
 				break
 				case "$":
 					print("$")
@@ -152,11 +196,12 @@ function ParsePattern(input) {
 				break
 				case "%":
 					print("%")
-					lex.Next()
+					ReadEscape(lex)
 				break
 				case "[":
 					print("[")
-					lex.Next()
+					ReadSet(lex)
+					ReadQuantity(lex)
 				break
 				default:
 					print("default", lex.current)
@@ -173,6 +218,10 @@ function ParsePattern(input) {
 	}
 
 	console.log(lex.tokens)
+
+	for (const token of lex.tokens) {
+
+	}
 	// const result = document.getElementById('result');
 	// while (result.firstChild) {
 	// 	result.removeChild(result.firstChild);
@@ -210,4 +259,4 @@ function ParsePattern(input) {
 	// }
 }
 
-ParsePattern("hello$$")
+ParsePattern("[^abc%]%a]+")
