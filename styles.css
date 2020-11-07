@@ -1,0 +1,62 @@
+.token {
+	background: #BCC2DA;
+	margin: 10px 0px 10px 10px;
+	max-width: 70%;
+	padding: 5px 0px 5px 0px;
+}
+
+#char.token {
+	background: #969696;
+}
+
+#source {
+	height: 30px;
+	width: 100%;
+	font-size: 20pt;
+	font-family: 'Roboto Mono', monospace;
+}
+
+.token a {
+	color: #141414;
+}
+
+.token a.input {
+	font-family: 'Roboto Mono', monospace;
+	font-weight: bold;
+	margin-left: 10px;
+	margin-right: 20px;
+}
+
+.token a.name {
+	font-weight: bold;
+	margin-right: 3px;
+}
+
+.token a.description{
+	
+}
+
+body {
+	font-family: 'Roboto', monospace;
+}
+
+:root {
+  --leftside-size: 300px;
+}
+
+.leftside {
+	height: 100%;
+	width: var(--leftside-size);
+	position: fixed;
+	z-index: 1;
+	top: 0;
+	left: 0;
+	background-color: #b4b4c6;
+	overflow-x: hidden;
+	padding-top: 20px;
+}
+
+.main {
+	margin-left: var(--leftside-size);
+	padding: 0px 10px;
+}

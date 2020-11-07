@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="pm.js"></script>
+		<link rel="stylesheet" href="styles.css">
+		<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+	</head>
+	<body>
+		<div class="leftside"></div>
+		<div class="main">
+			<h1>Lua Patterns Viewer</h1>
+			<input id="source" spellcheck="false">
+			<div id="result"></div>
+			<script>
+				const source = document.getElementById('source');
+
+				const inputHandler = function(e) {
+					ParsePattern(e.target.value)
+				}
+				source.addEventListener('input', inputHandler);
+				ParsePattern("he%s+l[abc]%f[[]lo")
+			</script>
+		</div>
+	</body>
+</html>
