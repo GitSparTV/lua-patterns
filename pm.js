@@ -17,6 +17,7 @@ const TOK = Object.freeze({
 	CAPTUREREF: 15, // %1
 	BALANCED: 16, // %b
 	FRONTIER: 17, // %f
+	ERROR: 18, // error
 })
 const TokToStr = [
 	"START",
@@ -39,12 +40,12 @@ const TokToStr = [
 	"FRONTIER",
 ]
 
-print = console.log
-// print = function() {}
+// print = console.log
+print = function() {}
 
 class Token {
 	constructor(tk, str) {
-		this.type = TokToStr[tk]
+		this.type = tk
 		this.string = str
 	}
 }
@@ -53,11 +54,10 @@ class Lexer {
 	constructor(str) {
 		this.input = str
 		this.end = str.length
-		this.len = str.length - 1
+		this.last = str.length - 1
 		this.tokens = []
-		this.current = ""
-		this.caret = -1
-		this.rem = null
+		this.current = str.charAt(0)
+		this.caret = 0
 	}
 
 	Next() {
@@ -81,15 +81,7 @@ class Lexer {
 	}
 
 	IsLast() {
-		return this.caret == this.len
-	}
-
-	Remember() {
-		this.rem = this.caret
-	}
-
-	Remind() {
-		return this.rem
+		return this.caret == this.last
 	}
 
 	AddToken(type, info) {
@@ -169,16 +161,14 @@ function ReadSet(lex) {
 	lex.Next()
 }
 
-function ParsePattern(input) {
-	let lex = new Lexer(input)
-	lex.Next()
-	if (lex.CheckNext("^")) {
-		lex.AddToken(TOK.START)
-	}
-	print("Str", input)
-	print("Len", input.length)
-	let error
+function PatternsLex(input) {
+	const lex = new Lexer(input)
 	try {
+		if (lex.CheckNext("^")) {
+			lex.AddToken(TOK.START)
+		}
+		print("Str", input)
+		print("Len", input.length)
 		while (!lex.IsEnd()) {
 			switch (lex.current) {
 				case "(":
