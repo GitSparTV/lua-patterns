@@ -243,14 +243,229 @@ function PatternsLex(input) {
 	}
 	catch (e) {
 		print(e.name + ": " + e.message)
-		error = e.name + ": " + e.message
+		lex.AddToken(TOK.ERROR, e.name + ": " + e.message)
 	}
 
-	console.log(lex.tokens)
+	return lex.tokens
+}
 
-	for (const token of lex.tokens) {
-
+class Parser {
+	constructor(tokens) {
+		this.tokens = tokens
+		this.caret = 0
+		this.last = tokens.length - 1
+		this.end = tokens.length
+		this.current = tokens[0]
+		this.nodes = []
+		this.rem = null
 	}
+
+	Next() {
+		this.current = this.tokens[++this.caret]
+	}
+
+	IsNextQuanifier(type) {
+		if (this.IsLast()) return false
+
+		let token = this.tokens[this.caret + 1]
+		switch (token.type) {
+			case TOK.ZEROORMORE: case TOK.ONEORMORE: case TOK.ZEROORMORELAZY: case TOK.ZEROORONE:
+				return true
+			default:
+				return false
+		}
+	}
+
+	Remember() {
+		this.rem = this.caret
+	}
+
+	GoBack() {
+		this.caret = this.rem + 1
+		this.current = this.tokens[this.rem]
+	}
+
+	Add(node) {
+		this.nodes.push(node)
+	}
+
+	IsEnd() {
+		return this.caret >= this.end
+	}
+
+	IsLast() {
+		return this.caret == this.last
+	}
+}
+
+const PAT = Object.freeze({
+	ERROR: 0,
+	CHARS: 1,
+	QUANTIFIER: 2,
+	ANY: 3,
+	START: 4,
+	END: 5,
+	ESCAPED: 6,
+	CLASS: 7,
+	CAPTUREREF: 8,
+	BALANCED: 9,
+})
+const PatToStr = [
+	"ERROR",
+	"CHARS",
+	"QUANTIFIER",
+	"ANY",
+	"START",
+	"END",
+	"ESCAPED",
+	"CLASS",
+	"CAPTUREREF",
+	"BALANCED",
+]
+
+class PatternObject {
+	constructor(type, parent, text) {
+		this.type = PatToStr[type]
+		this.text = text
+		this.children = []
+		parent.Add(this)
+	}
+
+	Add(child) {
+		this.children.push(child)
+	}
+}
+
+function CheckQuanitifier(par, parent) {
+	if (par.IsEnd()) return
+	switch (par.current.type) {
+		case TOK.ZEROORMORE: case TOK.ONEORMORE: case TOK.ZEROORMORELAZY: case TOK.ZEROORONE:
+			new PatternObject(PAT.QUANTIFIER, parent, par.current.type)
+			par.Next()
+			return true
+		default:
+			return
+	}
+}
+
+function MakeString(par) {
+	let string = new PatternObject(PAT.CHARS, par, "")
+	do {
+		string.text += par.current.string
+		par.Next()
+	} while (!par.IsEnd() && par.current.type == TOK.CHAR && !par.IsNextQuanifier())
+
+	CheckQuanitifier(par, string)
+}
+
+function PatternsParse(tokens) {
+	// console.log(tokens)
+	const par = new Parser(tokens)
+	while (!par.IsEnd()) {
+		switch (par.current.type) {
+			case TOK.START:
+				{
+					console.log("^")
+					new PatternObject(PAT.START, par)
+					par.Next()
+				}
+			break
+			case TOK.END:
+				{
+					console.log("$")
+					new PatternObject(PAT.END, par)
+					par.Next()
+				}
+			break
+			case TOK.ANY:
+				{
+					console.log(".")
+					let obj = new PatternObject(PAT.ANY, par)
+					par.Next()
+					CheckQuanitifier(par, obj)
+				}
+			break
+			case TOK.CHAR:
+				{
+					console.log("char")
+					MakeString(par)
+				}
+			break
+			// case TOK.LPAR:
+
+			// break
+			// case TOK.RPAR:
+
+			// break
+			case TOK.ESCAPED:
+				{
+					console.log("escaped")
+					let obj = new PatternObject(PAT.ESCAPED, par)
+					par.Next()
+					CheckQuanitifier(par, obj)
+				}
+			break
+			case TOK.LBRACKET:
+				{
+					console.log("braket")
+					par.Next()
+				}
+			break
+			case TOK.CLASS:
+				{
+					console.log("class")
+					let obj = new PatternObject(PAT.CLASS, par)
+					par.Next()
+					CheckQuanitifier(par, obj)
+				}
+			break
+			case TOK.CAPTUREREF:
+				{
+					console.log("Captureref")
+					let obj = new PatternObject(PAT.CAPTUREREF, par)
+					par.Next()
+				}
+			break
+			case TOK.BALANCED:
+				{
+					console.log("balanced")
+					let obj = new PatternObject(PAT.BALANCED, par)
+					par.Next()
+				}
+			break
+			// case TOK.FRONTIER:
+				// {
+
+				// }
+			// break
+			case TOK.ERROR:
+				{
+					console.log("Error")
+					par.Add()
+					par.Next()
+				}
+			break
+			default:
+				{
+					console.log("unknown", par.current)
+					par.Next()
+				}
+			break
+		}
+	}
+
+	return par.nodes
+}
+
+function PatternsPrint(input) {
+	const tokens = PatternsLex(input)
+	const output = PatternsParse(tokens)
+	console.log(output)
+	// for (let node of output) {
+
+	// }
+}
+
 	// const result = document.getElementById('result');
 	// while (result.firstChild) {
 	// 	result.removeChild(result.firstChild);
@@ -286,9 +501,8 @@ function PatternsLex(input) {
 	// 	element.appendChild(document.createTextNode(error))
 	// 	result.appendChild(element)
 	// }
-}
-
-ParsePattern("^^abc[set]+q+w*e-r?%((t.)%)%b()%f[^a-zA-Z%s]%1$$")
+// "^^abc[set]+q+w*e-r?%((t.)%)%b()%f[^a-zA-Z%s]%1$$"
+PatternsPrint("^^abc[set]+q+w*e-r?%((t.)%)%b()%f[^a-zA-Z%s]%1$$")
 /*
 ^					+
 ^					+
