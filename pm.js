@@ -312,6 +312,17 @@ class Parser {
 		}
 	}
 
+	IsNextRange() {
+		if (this.caret + 2 >= this.end) return false
+
+		let token = this.tokens[this.caret + 1]
+		let token2 = this.tokens[this.caret + 2]
+
+		if (token.type == TOK.CHAR && token.string == "-" && token2.type == TOK.CHAR) return true
+
+		return false
+	}
+
 	Remember() {
 		this.rem = this.caret
 	}
@@ -380,6 +391,43 @@ function MakeString(par) {
 	} while (!par.IsEnd() && par.current.type == TOK.CHAR && !par.IsNextQuanifier())
 
 	CheckQuanitifier(par, string)
+}
+
+function MakeSet(par, parent) {
+	let set = new PatternObject(PAT.SET, parent ? parent : par)
+	par.Next()
+	if (par.current.type == TOK.INVERSE) { new PatternObject(PAT.INVERSE, set); par.Next() }
+
+	do {
+		switch (par.current.type) {
+		case TOK.CLASS:
+			new PatternObject(PAT.CLASS, set, par.current.string)
+			par.Next()
+		break
+		case TOK.CHAR:
+			if (par.IsNextRange()) {
+				let string = par.current.string
+				par.Next()
+				par.Next()
+				new PatternObject(PAT.RANGE, set, string + par.current.string)
+				par.Next()
+			} else {
+				let string = new PatternObject(PAT.CHARS, set, "")
+				do {
+					string.text += par.current.string
+					par.Next()
+
+				} while (!par.IsEnd() && par.current.type == TOK.CHAR && !par.IsNextRange())
+			}
+		break
+		default:
+			console.log("???", par.current.type)
+		break
+		}
+	} while (!par.IsEnd() && par.current.type != TOK.RBRACKET)
+	par.Next()
+
+	CheckQuanitifier(par, set)
 }
 
 function PatternsParse(tokens) {
