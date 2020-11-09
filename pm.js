@@ -249,6 +249,41 @@ function PatternsLex(input) {
 	return lex.tokens
 }
 
+const PAT = Object.freeze({
+	ERROR: 0,
+	CHARS: 1,
+	QUANTIFIER: 2,
+	ANY: 3,
+	START: 4,
+	END: 5,
+	ESCAPED: 6,
+	CLASS: 7,
+	CAPTUREREF: 8,
+	BALANCED: 9,
+	SET: 10,
+	CAPTURE: 11,
+	FRONTIER: 12,
+	RANGE: 13,
+	INVERSE: 14,
+})
+const PatToStr = [
+	"ERROR",
+	"CHARS",
+	"QUANTIFIER",
+	"ANY",
+	"START",
+	"END",
+	"ESCAPED",
+	"CLASS",
+	"CAPTUREREF",
+	"BALANCED",
+	"SET",
+	"CAPTURE",
+	"FRONTIER",
+	"RANGE",
+	"INVERSE",
+]
+
 class Parser {
 	constructor(tokens) {
 		this.tokens = tokens
@@ -257,6 +292,7 @@ class Parser {
 		this.end = tokens.length
 		this.current = tokens[0]
 		this.nodes = []
+		this.levels = []
 		this.rem = null
 	}
 
@@ -297,31 +333,6 @@ class Parser {
 		return this.caret == this.last
 	}
 }
-
-const PAT = Object.freeze({
-	ERROR: 0,
-	CHARS: 1,
-	QUANTIFIER: 2,
-	ANY: 3,
-	START: 4,
-	END: 5,
-	ESCAPED: 6,
-	CLASS: 7,
-	CAPTUREREF: 8,
-	BALANCED: 9,
-})
-const PatToStr = [
-	"ERROR",
-	"CHARS",
-	"QUANTIFIER",
-	"ANY",
-	"START",
-	"END",
-	"ESCAPED",
-	"CLASS",
-	"CAPTUREREF",
-	"BALANCED",
-]
 
 class PatternObject {
 	constructor(type, parent, text) {
