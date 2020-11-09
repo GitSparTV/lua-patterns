@@ -433,97 +433,112 @@ function MakeSet(par, parent) {
 function PatternsParse(tokens) {
 	// console.log(tokens)
 	const par = new Parser(tokens)
-	while (!par.IsEnd()) {
-		switch (par.current.type) {
-			case TOK.START:
-				{
-					console.log("^")
-					new PatternObject(PAT.START, par)
-					par.Next()
-				}
-			break
-			case TOK.END:
-				{
-					console.log("$")
-					new PatternObject(PAT.END, par)
-					par.Next()
-				}
-			break
-			case TOK.ANY:
-				{
-					console.log(".")
-					let obj = new PatternObject(PAT.ANY, par)
-					par.Next()
-					CheckQuanitifier(par, obj)
-				}
-			break
-			case TOK.CHAR:
-				{
-					console.log("char")
-					MakeString(par)
-				}
-			break
-			// case TOK.LPAR:
-
-			// break
-			// case TOK.RPAR:
-
-			// break
-			case TOK.ESCAPED:
-				{
-					console.log("escaped")
-					let obj = new PatternObject(PAT.ESCAPED, par)
-					par.Next()
-					CheckQuanitifier(par, obj)
-				}
-			break
-			case TOK.LBRACKET:
-				{
-					console.log("braket")
-					par.Next()
-				}
-			break
-			case TOK.CLASS:
-				{
-					console.log("class")
-					let obj = new PatternObject(PAT.CLASS, par)
-					par.Next()
-					CheckQuanitifier(par, obj)
-				}
-			break
-			case TOK.CAPTUREREF:
-				{
-					console.log("Captureref")
-					let obj = new PatternObject(PAT.CAPTUREREF, par)
-					par.Next()
-				}
-			break
-			case TOK.BALANCED:
-				{
-					console.log("balanced")
-					let obj = new PatternObject(PAT.BALANCED, par)
-					par.Next()
-				}
-			break
-			// case TOK.FRONTIER:
-				// {
-
-				// }
-			// break
-			case TOK.ERROR:
-				{
-					console.log("Error")
-					par.Add()
-					par.Next()
-				}
-			break
-			default:
-				{
-					console.log("unknown", par.current)
-					par.Next()
-				}
-			break
+	try {
+		while (!par.IsEnd()) {
+			switch (par.current.type) {
+				case TOK.START:
+					{
+						console.log("^")
+						new PatternObject(PAT.START, par)
+						par.Next()
+					}
+				break
+				case TOK.END:
+					{
+						console.log("$")
+						new PatternObject(PAT.END, par)
+						par.Next()
+					}
+				break
+				case TOK.ANY:
+					{
+						console.log(".")
+						let obj = new PatternObject(PAT.ANY, par)
+						par.Next()
+						CheckQuanitifier(par, obj)
+					}
+				break
+				case TOK.CHAR:
+					{
+						console.log("char")
+						MakeString(par)
+					}
+				break
+				case TOK.LPAR:
+					{
+						console.log("(")
+						par.StartCapture()
+						par.Next()
+					}
+				break
+				case TOK.RPAR:
+					{
+						console.log(")")
+						par.EndCapture()
+						par.Next()
+					}
+				break
+				case TOK.ESCAPED:
+					{
+						console.log("escaped")
+						let obj = new PatternObject(PAT.ESCAPED, par)
+						par.Next()
+						CheckQuanitifier(par, obj)
+					}
+				break
+				case TOK.LBRACKET:
+					{
+						console.log("[")
+						MakeSet(par)
+					}
+				break
+				case TOK.CLASS:
+					{
+						console.log("class")
+						let obj = new PatternObject(PAT.CLASS, par, par.current.string)
+						par.Next()
+						CheckQuanitifier(par, obj)
+					}
+				break
+				case TOK.CAPTUREREF:
+					{
+						console.log("Captureref")
+						new PatternObject(PAT.CAPTUREREF, par, par.current.string)
+						par.Next()
+					}
+				break
+				case TOK.BALANCED:
+					{
+						console.log("balanced")
+						new PatternObject(PAT.BALANCED, par, par.current.string)
+						par.Next()
+					}
+				break
+				case TOK.FRONTIER:
+					{
+						console.log("%f")
+						let f = new PatternObject(PAT.FRONTIER, par)
+						par.Next()
+						MakeSet(par, f)
+					}
+				break
+				case TOK.ERROR:
+					{
+						new PatternObject(PAT.ERROR, par, par.current.string)
+						par.Next()
+					}
+				break
+				default:
+					{
+						console.log("unknown", par.current)
+						par.Next()
+					}
+				break
+			}
 		}
+	} catch (err) {
+		print(e.name + ": " + e.message)
+		new PatternObject(PAT.ERROR, par, e.name + ": " + e.message)
 	}
 
 	return par.nodes
