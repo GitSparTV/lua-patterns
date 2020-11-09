@@ -322,7 +322,20 @@ class Parser {
 	}
 
 	Add(node) {
-		this.nodes.push(node)
+		if (this.levels.length == 0) {
+			this.nodes.push(node)
+		} else {
+			this.levels[this.levels.length - 1].Add(node)
+		}
+	}
+
+	StartCapture() {
+		let capture = new PatternObject(PAT.CAPTURE, this)
+		this.levels.push(capture)
+	}
+
+	EndCapture() {
+		this.levels.pop()
 	}
 
 	IsEnd() {
