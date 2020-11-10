@@ -464,6 +464,10 @@ function PatternsParse(tokens) {
 						let obj = new PatternObject(PAT.ANY, par)
 						par.Next()
 						CheckQuantifier(par, obj)
+						console.log(obj)
+						if (obj.children[0] && obj.children[0].type === PAT.QUANTIFIER && (obj.children[0].text === TOK.ZEROORMORE || obj.children[0].text === TOK.ONEORMORE)) {
+							new PatternObject(PAT.NOTE, obj, "Matching any characters with \"+\" or \"*\" quantifiers may fail your pattern. They match the longest sequence, meaning anything after this pattern won't be matched.")
+						}
 					}
 					break
 				case TOK.CHAR:
