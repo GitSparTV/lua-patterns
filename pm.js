@@ -41,7 +41,7 @@ const TokToStr = [
 ]
 
 // print = console.log
-print = function() {}
+print = function () { }
 
 class Token {
 	constructor(tk, str) {
@@ -65,7 +65,7 @@ class Lexer {
 	}
 
 	Lookahead() {
-		return this.input.charAt(this.caret+1)
+		return this.input.charAt(this.caret + 1)
 	}
 
 	CheckNext(char) {
@@ -95,20 +95,11 @@ class Lexer {
 
 function MatchClass(char) {
 	switch (char.toLowerCase()) {
-		case 'a': return true;
-		case 'c': return true;
-		case 'd': return true;
-		case 'g': return true;
-		case 'l': return true;
-		case 'L': return true;
-		case 'p': return true;
-		case 's': return true;
-		case 'S': return true;
-		case 'u': return true;
-		case 'w': return true;
-		case 'x': return true;
-		case 'z': return true;
-		default: return false;
+		case 'a': case 'c': case 'd': case 'g': case 'l':
+		case 'p': case 's': case 'u': case 'w': case 'x': case 'z':
+			return true;
+		default:
+			return false;
 	}
 }
 
@@ -117,24 +108,24 @@ function ReadQuantity(lex) {
 		case "+":
 			lex.AddToken(TOK.ONEORMORE)
 			lex.Next()
-		break
+			break
 		case "-":
 			lex.AddToken(TOK.ZEROORMORELAZY)
 			lex.Next()
-		break
+			break
 		case "*":
 			lex.AddToken(TOK.ZEROORMORE)
 			lex.Next()
-		break
+			break
 		case "?":
 			lex.AddToken(TOK.ZEROORONE)
 			lex.Next()
-		break
+			break
 	}
 }
 
 function ReadEscape(lex) {
-	if (lex.IsLast()) throw new Error("malformed pattern (ends with '%')")
+	if (lex.IsEnd()) { lex.AddToken(TOK.ERROR, "malformed pattern (ends with '%')"); throw new Error("") }
 	if (MatchClass(lex.current)) {
 		lex.AddToken(TOK.CLASS, lex.current)
 	} else {
@@ -148,7 +139,7 @@ function ReadSet(lex) {
 	lex.Next()
 	if (lex.CheckNext("^")) lex.AddToken(TOK.INVERSE);
 	do {
-		if (lex.IsEnd()) throw new Error("malformed pattern (missing ']')")
+		if (lex.IsEnd()) { lex.AddToken(TOK.ERROR, "malformed pattern (missing ']')"); throw new Error("") }
 		if (lex.current == "%" && lex.caret < lex.end) {
 			lex.Next()
 			ReadEscape(lex)
@@ -175,12 +166,12 @@ function PatternsLex(input) {
 					print("(")
 					lex.AddToken(TOK.LPAR)
 					lex.Next()
-				break
+					break
 				case ")":
 					print(")")
 					lex.AddToken(TOK.RPAR)
 					lex.Next()
-				break
+					break
 				case "$":
 					print("$")
 					if (lex.IsLast()) {
@@ -191,59 +182,61 @@ function PatternsLex(input) {
 						lex.Next()
 						ReadQuantity(lex)
 					}
-				break
+					break
 				case "%":
 					lex.Next()
 					print("%", lex.current)
 					switch (lex.current) {
 						case "b":
-							if (lex.caret + 2 >= lex.end) throw new Error("malformed pattern (missing arguments to '%b')");
+							if (lex.caret + 2 >= lex.end) { lex.AddToken(TOK.ERROR, "malformed pattern (missing arguments to '%b')"); throw new Error(""); }
 							lex.AddToken(TOK.BALANCED, lex.Sub(lex.caret + 1, lex.caret + 3))
 							lex.Next()
 							lex.Next()
 							lex.Next()
-						break
+							break
 						case "f":
 							lex.Next()
-							if (lex.current != "[") throw new Error("missing '[' after '%f' in pattern");
+							if (lex.current != "[") { lex.AddToken(TOK.ERROR, "missing '[' after '%f' in pattern"); throw new Error(""); }
 							lex.AddToken(TOK.FRONTIER)
 							ReadSet(lex)
-						break
+							break
 						case '0': case '1': case '2': case '3':
 						case '4': case '5': case '6': case '7':
 						case '8': case '9':
-							lex.AddToken(TOK.CAPTUREREF,lex.current)
+							lex.AddToken(TOK.CAPTUREREF, lex.current)
 							lex.Next()
-						break
+							break
 						default:
 							ReadEscape(lex)
 							ReadQuantity(lex)
-						break
+							break
 					}
-				break
+					break
 				case "[":
 					print("[")
 					ReadSet(lex)
 					ReadQuantity(lex)
-				break
+					break
 				case ".":
 					print(".")
 					lex.AddToken(TOK.ANY)
 					lex.Next()
 					ReadQuantity(lex)
-				break
+					break
 				default:
 					print("char", lex.current)
 					lex.AddToken(TOK.CHAR, lex.current)
 					lex.Next()
 					ReadQuantity(lex)
-				break
+					break
 			}
 		}
 	}
 	catch (e) {
-		print(e.name + ": " + e.message)
-		lex.AddToken(TOK.ERROR, e.name + ": " + e.message)
+		if (e.message.length > 0) {
+			print(e.name + ": " + e.message)
+			lex.AddToken(TOK.ERROR, "Lexer error: " + e.message)
+		}
 	}
 
 	return lex.tokens
@@ -265,6 +258,8 @@ const PAT = Object.freeze({
 	FRONTIER: 12,
 	RANGE: 13,
 	INVERSE: 14,
+	POSITION: 15,
+	WARNING: 16,
 })
 const PatToStr = [
 	"ERROR",
@@ -282,6 +277,8 @@ const PatToStr = [
 	"FRONTIER",
 	"RANGE",
 	"INVERSE",
+	"POSITION",
+	"WARNING"
 ]
 
 class Parser {
@@ -293,6 +290,7 @@ class Parser {
 		this.current = tokens[0]
 		this.nodes = []
 		this.levels = []
+		this.captures = 0
 		this.rem = null
 	}
 
@@ -300,7 +298,7 @@ class Parser {
 		this.current = this.tokens[++this.caret]
 	}
 
-	IsNextQuanifier(type) {
+	IsNextQuantifier(type) {
 		if (this.IsLast()) return false
 
 		let token = this.tokens[this.caret + 1]
@@ -323,13 +321,9 @@ class Parser {
 		return false
 	}
 
-	Remember() {
-		this.rem = this.caret
-	}
-
-	GoBack() {
-		this.caret = this.rem + 1
-		this.current = this.tokens[this.rem]
+	IsNextRPar() {
+		if (this.IsLast()) return false
+		return this.tokens[this.caret + 1].type == TOK.RPAR
 	}
 
 	Add(node) {
@@ -341,7 +335,8 @@ class Parser {
 	}
 
 	StartCapture() {
-		let capture = new PatternObject(PAT.CAPTURE, this)
+		let capture = new PatternObject(PAT.CAPTURE, this, this.levels.length + 1)
+		this.captures++
 		this.levels.push(capture)
 	}
 
@@ -360,7 +355,7 @@ class Parser {
 
 class PatternObject {
 	constructor(type, parent, text) {
-		this.type = PatToStr[type]
+		this.type = type
 		this.text = text
 		this.children = []
 		parent.Add(this)
@@ -371,7 +366,7 @@ class PatternObject {
 	}
 }
 
-function CheckQuanitifier(par, parent) {
+function CheckQuantifier(par, parent) {
 	if (par.IsEnd()) return
 	switch (par.current.type) {
 		case TOK.ZEROORMORE: case TOK.ONEORMORE: case TOK.ZEROORMORELAZY: case TOK.ZEROORONE:
@@ -388,9 +383,9 @@ function MakeString(par) {
 	do {
 		string.text += par.current.string
 		par.Next()
-	} while (!par.IsEnd() && par.current.type == TOK.CHAR && !par.IsNextQuanifier())
+	} while (!par.IsEnd() && par.current.type == TOK.CHAR && !par.IsNextQuantifier())
 
-	CheckQuanitifier(par, string)
+	CheckQuantifier(par, string)
 }
 
 function MakeSet(par, parent) {
@@ -400,235 +395,353 @@ function MakeSet(par, parent) {
 
 	do {
 		switch (par.current.type) {
-		case TOK.CLASS:
-			new PatternObject(PAT.CLASS, set, par.current.string)
-			par.Next()
-		break
-		case TOK.CHAR:
-			if (par.IsNextRange()) {
-				let string = par.current.string
+			case TOK.CLASS:
+				new PatternObject(PAT.CLASS, set, par.current.string)
 				par.Next()
-				par.Next()
-				new PatternObject(PAT.RANGE, set, string + par.current.string)
-				par.Next()
-			} else {
-				let string = new PatternObject(PAT.CHARS, set, "")
-				do {
-					string.text += par.current.string
+				break
+			case TOK.CHAR:
+				if (par.IsNextRange()) {
+					let string = par.current.string
 					par.Next()
+					par.Next()
+					new PatternObject(PAT.RANGE, set, string + par.current.string)
+					par.Next()
+				} else {
+					let string = new PatternObject(PAT.CHARS, set, "")
+					do {
+						string.text += par.current.string
+						par.Next()
 
-				} while (!par.IsEnd() && par.current.type == TOK.CHAR && !par.IsNextRange())
-			}
-		break
-		default:
-			console.log("???", par.current.type)
-		break
+					} while (!par.IsEnd() && par.current.type == TOK.CHAR && !par.IsNextRange())
+				}
+				break
+			case TOK.ESCAPED:
+				new PatternObject(PAT.ESCAPED, set, par.current.string)
+				par.Next()
+				break
+			case TOK.ERROR:
+				new PatternObject(PAT.ERROR, set, par.current.string)
+				par.Next()
+				return
+			default:
+				console.log("???", par.current.type)
+				par.Next()
+				break
 		}
-	} while (!par.IsEnd() && par.current.type != TOK.RBRACKET)
+	} while (par.current.type != TOK.RBRACKET)
 	par.Next()
 
-	CheckQuanitifier(par, set)
+	CheckQuantifier(par, set)
 }
 
 function PatternsParse(tokens) {
-	// console.log(tokens)
 	const par = new Parser(tokens)
 	try {
 		while (!par.IsEnd()) {
 			switch (par.current.type) {
 				case TOK.START:
 					{
-						console.log("^")
+						print("^")
 						new PatternObject(PAT.START, par)
 						par.Next()
 					}
-				break
+					break
 				case TOK.END:
 					{
-						console.log("$")
+						print("$")
 						new PatternObject(PAT.END, par)
 						par.Next()
 					}
-				break
+					break
 				case TOK.ANY:
 					{
-						console.log(".")
+						print(".")
 						let obj = new PatternObject(PAT.ANY, par)
 						par.Next()
-						CheckQuanitifier(par, obj)
+						CheckQuantifier(par, obj)
 					}
-				break
+					break
 				case TOK.CHAR:
 					{
-						console.log("char")
+						print("char")
 						MakeString(par)
 					}
-				break
+					break
 				case TOK.LPAR:
 					{
-						console.log("(")
-						par.StartCapture()
+						print("(")
+						if (par.IsNextRPar()) {
+							new PatternObject(PAT.POSITION, par)
+							par.Next()
+							par.Next()
+						} else {
+							par.StartCapture()
+						}
 						par.Next()
 					}
-				break
+					break
 				case TOK.RPAR:
 					{
-						console.log(")")
+						print(")")
 						par.EndCapture()
 						par.Next()
 					}
-				break
+					break
 				case TOK.ESCAPED:
 					{
-						console.log("escaped")
-						let obj = new PatternObject(PAT.ESCAPED, par)
+						print("escaped")
+						let obj = new PatternObject(PAT.ESCAPED, par, par.current.string)
 						par.Next()
-						CheckQuanitifier(par, obj)
+						CheckQuantifier(par, obj)
 					}
-				break
+					break
 				case TOK.LBRACKET:
 					{
-						console.log("[")
+						print("[")
 						MakeSet(par)
 					}
-				break
+					break
 				case TOK.CLASS:
 					{
-						console.log("class")
+						print("class")
 						let obj = new PatternObject(PAT.CLASS, par, par.current.string)
 						par.Next()
-						CheckQuanitifier(par, obj)
+						CheckQuantifier(par, obj)
 					}
-				break
+					break
 				case TOK.CAPTUREREF:
 					{
-						console.log("Captureref")
-						new PatternObject(PAT.CAPTUREREF, par, par.current.string)
+						print("Captureref")
+						let obj = new PatternObject(PAT.CAPTUREREF, par, par.current.string)
+						if (par.current.string == 0) {
+							new PatternObject(PAT.WARNING, obj, "Reference for capture #0 is available only in string.gsub.")
+						} else if (par.captures < par.current.string) {
+							new PatternObject(PAT.WARNING, obj, "Reference for capture #" + par.current.string + " is not found.")
+						}
 						par.Next()
 					}
-				break
+					break
 				case TOK.BALANCED:
 					{
-						console.log("balanced")
+						print("balanced")
 						new PatternObject(PAT.BALANCED, par, par.current.string)
 						par.Next()
 					}
-				break
+					break
 				case TOK.FRONTIER:
 					{
-						console.log("%f")
+						print("%f")
 						let f = new PatternObject(PAT.FRONTIER, par)
 						par.Next()
 						MakeSet(par, f)
 					}
-				break
+					break
 				case TOK.ERROR:
 					{
 						new PatternObject(PAT.ERROR, par, par.current.string)
 						par.Next()
 					}
-				break
+					break
 				default:
 					{
-						console.log("unknown", par.current)
+						print("unknown", par.current)
 						par.Next()
 					}
-				break
+					break
 			}
 		}
-	} catch (err) {
-		print(e.name + ": " + e.message)
-		new PatternObject(PAT.ERROR, par, e.name + ": " + e.message)
+		if (par.levels.length != 0) throw new Error("Unfinished capture #" + par.levels.length + "")
+	} catch (e) {
+		console.log(e.name + ": " + e.message)
+		par.levels.length = 0
+		new PatternObject(PAT.ERROR, par, "Parser error: " + e.message)
 	}
 
 	return par.nodes
 }
 
+basediv = null
+function CreateDiv(type, parent, text, name, description) {
+	let element = document.createElement("div");
+	let p = document.createElement("a")
+	p.className = "input"
+	p.appendChild(document.createTextNode(text))
+	let nname = document.createElement("a")
+	nname.className = "name"
+	nname.appendChild(document.createTextNode(name))
+	let ndescription = document.createElement("a")
+	ndescription.className = "description"
+	ndescription.appendChild(document.createTextNode(description))
+	element.className = "token"
+	element.id = type
+	element.appendChild(p)
+	element.appendChild(nname)
+	element.appendChild(ndescription)
+	parent.appendChild(element)
+
+	return element
+}
+
+function CleanBaseDiv() {
+	while (basediv.firstChild) {
+		basediv.removeChild(basediv.firstChild)
+	}
+}
+
+const PAT_QUANTIFIER_NAMES = Object.freeze({
+	[TOK.ZEROORMORE]: ["*", "zero or more", "Allows to match the pattern zero or more times. This will match the longest sequence."],
+	[TOK.ONEORMORE]: ["+", "one or more", "Allows to match the pattern one or more times. This will match the longest sequence."],
+	[TOK.ZEROORMORELAZY]: ["-", "lazy zero or more", "Allows to match the pattern zero or more times. This will match the shortest sequence."],
+	[TOK.ZEROORONE]: ["?", "zero or one", "Allows to match the pattern zero or one time."],
+})
+
+const PAT_CLASS_NAMES = Object.freeze({
+	["a"]: ["Letters", "all letters (Equivalent to [a-zA-Z])"],
+	["A"]: ["Not letters", "all non-letters (Equivalent to [^a-zA-Z])"],
+	["c"]: ["Controls", "all control characters (Such as \"\\t\", \"\\n\", \"\\r\", etc.) (Equivalent to [\\0-\\31])"],
+	["C"]: ["Not Controls", "all non-control characters (Equivalent to [^\\0-\\31])"],
+	["d"]: ["Digits", "all digits (Equivalent to [0-9])"],
+	["D"]: ["Not digits", "all non-digits (Equivalent to [^0-9])"],
+	["g"]: ["Printable", "all printable characters except space (Equivalent to [\\33-\\126])"],
+	["G"]: ["Not printable", "all non-printable characters including space (Equivalent to [^\\33-\\126])"],
+	["l"]: ["Lowercase", "all lowercase letters (Equivalent to [a-z])"],
+	["L"]: ["Not lowercase", "all non-lowercase letters (Equivalent to [^a-z])"],
+	["p"]: ["Punctuations", "all punctuation characters (Equivalent to [!\"#$%&'()*+,-./[\\%]^_`{|}~])"],
+	["P"]: ["Not punctuations", "all non-punctuation characters (Equivalent to [^!\"#$%&'()*+,-./[\\%]^_`{|}~])"],
+	["s"]: ["Spaces", "all white-space characters (Equivalent to [ \\t\\n\\v\\f\\r])"],
+	["S"]: ["Not spaces", "all non-white-space characters (Equivalent to [^ \\t\\n\\v\\f\\r])"],
+	["u"]: ["Uppercase", "all uppercase letters (Equivalent to [A-Z])"],
+	["U"]: ["Not uppercase", "all non-uppercase letters (Equivalent to [^A-Z])"],
+	["w"]: ["Alphanumerics", "all digits, lowercase and uppercase letters (Equivalent to [a-zA-Z0-9])"],
+	["W"]: ["Not alphanumerics", "all non-digits, non-lowercase and non-uppercase letters (Equivalent to [^a-zA-Z0-9])"],
+	["x"]: ["Hexadecimals", "all hexadecimal digits (Equivalent to [0-9a-fA-F]"],
+	["X"]: ["Not hexadecimals", "all non-hexadecimal digits (Equivalent to [^0-9a-fA-F]"],
+	["z"]: ["\\0 byte", "NULL character (0). Deprecated in Lua 5.2.0, use \"\\0\" as regular character."],
+	["Z"]: ["Not \\0 byte", "non-NULL character (0). Deprecated in Lua 5.2.0, use \"[^\\0]\" as regular character."],
+})
+
+function PatternsShow(nodes, parent) {
+	try {
+		for (let node of nodes) {
+			switch (node.type) {
+				case PAT.CHARS:
+					{
+						let len = node.text.length
+						let element = CreateDiv("char", parent, node.text, len > 1 ? "Characters." : "Character.", len > 1 ? ("Matches the characters \"" + node.text + "\" literally.") : ("Matches the character \"" + node.text + "\" literally."))
+						PatternsShow(node.children, element)
+					}
+					break
+				case PAT.QUANTIFIER:
+					{
+						let element = CreateDiv("quantifier", parent, PAT_QUANTIFIER_NAMES[node.text][0], "Quantifier (" + PAT_QUANTIFIER_NAMES[node.text][1] + ").", PAT_QUANTIFIER_NAMES[node.text][2])
+						PatternsShow(node.children, element)
+					}
+					break
+				case PAT.ANY:
+					{
+						let element = CreateDiv("any", parent, ".", "Any.", "Matches any character. Equivalent to \"[%s%S]\".")
+						PatternsShow(node.children, element)
+					}
+					break
+				case PAT.START:
+					{
+						let element = CreateDiv("start", parent, "^", "Start anchor.", "Tells to match the pattern only if it starts from the beginning of the string.")
+					}
+					break
+				case PAT.END:
+					{
+						let element = CreateDiv("end", parent, "&", "End anchor.", "Tells to match the pattern only if it ends at the end of the string.")
+					}
+					break
+				case PAT.ESCAPED:
+					{
+						let element = CreateDiv("char", parent, "%" + node.text, "Escaped character.", "Matches the character \"" + node.text + "\" literally.")
+						if (parent == basediv) { PatternsShow(node.children, element) }
+					}
+					break
+				case PAT.CLASS:
+					{
+						let element = CreateDiv("class", parent, "%" + node.text, "Class (" + PAT_CLASS_NAMES[node.text][0] + ").", "Matches " + PAT_CLASS_NAMES[node.text][1] + ".")
+						if (parent == basediv) { PatternsShow(node.children, element) }
+					}
+					break
+				case PAT.CAPTUREREF:
+					{
+						let element = CreateDiv("captureref", parent, "%" + node.text, "Capture reference.", "Matches the same pattern as in referenced capture \"" + node.text + "\".")
+						PatternsShow(node.children, element)
+					}
+					break
+				case PAT.BALANCED:
+					{
+						CreateDiv("balanced", parent, "%b" + node.text, "Balanced match.", "Matches characters starting at \"" + node.text.charAt(0) + "\" until the corresponding \"" + node.text.charAt(1) + "\".")
+					}
+					break
+				case PAT.SET:
+					{
+						let element = CreateDiv("set", parent, "[", "Set.", "Matches any character from the set.")
+						PatternsShow(node.children, element)
+					}
+					break
+				case PAT.POSITION:
+					{
+						let element = CreateDiv("position", parent, "()", "Position capture.", "Captures the position in the string.")
+						PatternsShow(node.children, element)
+					}
+					break
+				case PAT.CAPTURE:
+					{
+						let element = CreateDiv("capture", parent, "(", "Capture #" + node.text + ".", "Makes a pattern group to be used for backreferencing or substring output.")
+						PatternsShow(node.children, element)
+					}
+					break
+				case PAT.FRONTIER:
+					{
+						let element = CreateDiv("frontier", parent, "%f", "Frontier.", "Matches any character from the set when the previous character doesn't match it.")
+						PatternsShow(node.children, element)
+					}
+					break
+				case PAT.RANGE:
+					{
+						let s = node.text.charAt(0), e = node.text.charAt(1)
+						let element = CreateDiv("range", parent, s + "-" + e, "Range.", "Matches any character in the range \"" + s + "\" (byte " + s.charCodeAt(0) + ") to \"" + e + "\" (byte " + e.charCodeAt(0) + ").")
+						if (s > e) {
+							CreateDiv("warning", element, "?", "Warning.", "The range won't match anything because the start of the range is greater than the end (\"" + s + "\" (" + s.charCodeAt(0) + ") > \"" + e + "\" (" + s.charCodeAt(0) + ")).")
+						} else if (s == e) {
+							CreateDiv("warning", element, "?", "Warning.", "The range has range of one character. Consider using regular char instead.")
+						}
+					}
+					break
+				case PAT.INVERSE:
+					{
+						CreateDiv("inverse", parent, "^", "Inverse set.", "Inverses the set.")
+					}
+					break
+				case PAT.WARNING:
+					{
+						CreateDiv("warning", parent, "?", "Warning.", node.text)
+					}
+					break
+				case PAT.ERROR:
+					{
+						CreateDiv("error", parent, "!", "Error.", node.text)
+					}
+					break
+				default:
+					console.log(node)
+					CreateDiv("error", basediv, "!", "Error.", "Unknown pattern object (" + node.type + ") [" + PatToStr[node.type] + "]")
+					break
+			}
+		}
+	} catch (e) {
+		CreateDiv("error", basediv, "!", "Error.", "Pattern renderer error: " + e.name + ": " + e.message)
+	}
+}
+
 function PatternsPrint(input) {
 	const tokens = PatternsLex(input)
 	const output = PatternsParse(tokens)
-	console.log(output)
-	// for (let node of output) {
+	basediv = document.getElementById("result")
+	CleanBaseDiv()
+	PatternsShow(output, basediv)
 
-	// }
 }
-
-	// const result = document.getElementById('result');
-	// while (result.firstChild) {
-	// 	result.removeChild(result.firstChild);
-	// }
-
-	// for (const token of Tokens) {
-	// 	let element = document.createElement("div");
-	// 	let p = document.createElement("a")
-	// 	p.className = "input"
-	// 	let name = document.createElement("a")
-	// 	name.className = "name"
-	// 	let description = document.createElement("a")
-	// 	description.className = "description"
-	// 	element.className = "token"
-	// 	if (token.type == TOK.CHAR) {
-	// 		p.appendChild(document.createTextNode(token.string))
-	// 		name.appendChild(document.createTextNode("Character."))
-	// 		description.appendChild(document.createTextNode("Matches literal character."))
-	// 		element.id = "char"
-	// 	} else {
-	// 		p.appendChild(document.createTextNode((token.string ? "[" + (token.string) + "] " : "") + TokToStr[token.type]))
-	// 		element.id = "token"
-	// 	}
-	// 	element.appendChild(p)
-	// 	element.appendChild(name)
-	// 	element.appendChild(description)
-	// 	result.appendChild(element)
-	// }
-
-	// if (error) {
-	// 	let element = document.createElement("div");
-	// 	element.className = "error"
-	// 	element.appendChild(document.createTextNode(error))
-	// 	result.appendChild(element)
-	// }
-// "^^abc[set]+q+w*e-r?%((t.)%)%b()%f[^a-zA-Z%s]%1$$"
-PatternsPrint("^^abc[set]+q+w*e-r?%((t.)%)%b()%f[^a-zA-Z%s]%1$$")
-/*
-^					+
-^					+
-a					+
-b					+
-c					+
-[					+
-	s				+
-	e				+
-	t				+
-]					+
-	+				+
-q					+
-	+				+
-w					+
-	*				+
-e					+
-	-				+
-r					+
-	?				+
-%(					+
-(					+
-	t				+
-	.				-
-)					+
-%)					+
-%b()				+
-%f					+
-	[				+
-		^			+
-		a			+
-		-			+
-		z			+
-		A			+
-		-			+
-		Z			+
-		%s			+
-	]				
-%1					
-$					
-$					
-*/
