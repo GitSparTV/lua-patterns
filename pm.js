@@ -678,7 +678,7 @@ function PatternsShow(nodes, parent) {
 					break
 				case PAT.SET:
 					{
-						let element = CreateDiv("set", parent, "[", "Set.", "Matches any character from the set.")
+						let element = CreateDiv("set", parent, "[...]", "Set.", "Matches any character from the set.")
 						PatternsShow(node.children, element)
 					}
 					break
@@ -690,7 +690,7 @@ function PatternsShow(nodes, parent) {
 					break
 				case PAT.CAPTURE:
 					{
-						let element = CreateDiv("capture", parent, "(", "Capture #" + node.text + ".", "Makes a pattern group to be used for backreferencing or substring output.")
+						let element = CreateDiv("capture", parent, "(...)", "Capture #" + node.text + ".", "Makes a pattern group to be used for backreferencing or substring output.")
 						PatternsShow(node.children, element)
 					}
 					break
