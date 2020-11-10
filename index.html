@@ -6,15 +6,12 @@
 	<script>
 		function OpenLeftSide() {
 			document.getElementById("leftside").style.width = "200px";
-			document.getElementById("main").style.marginLeft = "200px";
-			document.getElementById("main").style.marginRight = "-200px";
-
+			document.getElementById("main").style.left = "200px";
 		}
 
 		function CloseLeftSide() {
 			document.getElementById("leftside").style.width = "0";
-			document.getElementById("main").style.marginLeft = "0";
-			document.getElementById("main").style.marginRight = "0";
+			document.getElementById("main").style.left = "0";
 		}
 	</script>
 	<link rel="stylesheet" href="styles.css">
