@@ -521,10 +521,10 @@ function PatternsParse(tokens) {
 						let obj = new PatternObject(PAT.CAPTUREREF, par, par.current.string)
 						if (par.current.string == 0) {
 							new PatternObject(PAT.NOTE, obj, "Reference for capture #0 is available only in string.gsub.")
-						} else if (par.captures < par.current.string) {
+						} else if (par.captures.length < par.current.string - 1) {
 							new PatternObject(PAT.WARNING, obj, "Reference for capture #" + par.current.string + " is not found.")
-						} else if (par.captures[par.current.string.toNumber()].type == TOK.POSITION) {
-							new PatternObject(PAT.NOTE, obj, "Reference for position capture #" + par.current.string + " is available only in string.gsub.")
+						} else if (par.captures[par.current.string - 1].type == PAT.POSITION) {
+							new PatternObject(PAT.NOTE, obj, "References for position captures are available only in string.gsub.")
 						}
 						par.Next()
 					}
@@ -559,7 +559,7 @@ function PatternsParse(tokens) {
 					break
 			}
 		}
-		if (par.levels.length != 0) throw new Error("Unfinished capture #" + par.captures+1 + "")
+		if (par.levels.length != 0) throw new Error("Unfinished capture #" + par.captures.length + "")
 	} catch (e) {
 		console.log(e.name + ": " + e.message)
 		par.levels.length = 0
@@ -676,7 +676,7 @@ function PatternsShow(nodes, parent) {
 					break
 				case PAT.CAPTUREREF:
 					{
-						let element = CreateDiv("captureref", parent, "%" + node.text, "Capture reference.", "Matches the same pattern as in referenced capture \"" + node.text + "\".")
+						let element = CreateDiv("captureref", parent, "%" + node.text, "Capture reference.", "Matches or returns the same pattern as in referenced capture \"" + node.text + "\".")
 						PatternsShow(node.children, element)
 					}
 					break
