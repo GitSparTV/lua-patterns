@@ -337,8 +337,8 @@ class Parser {
 	}
 
 	StartCapture() {
-		let capture = new PatternObject(PAT.CAPTURE, this, this.levels.length + 1)
-		this.captures++
+		let capture = new PatternObject(PAT.CAPTURE, this, this.captures.length + 1)
+		this.captures.push(capture)
 		this.levels.push(capture)
 	}
 
