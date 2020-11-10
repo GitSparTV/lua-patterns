@@ -476,7 +476,7 @@ function PatternsParse(tokens) {
 					{
 						print("(")
 						if (par.IsNextRPar()) {
-							new PatternObject(PAT.POSITION, par)
+							par.captures.push(new PatternObject(PAT.POSITION, par, par.captures.length + 1))
 							par.Next()
 							par.Next()
 						} else {
@@ -693,7 +693,7 @@ function PatternsShow(nodes, parent) {
 					break
 				case PAT.POSITION:
 					{
-						let element = CreateDiv("position", parent, "()", "Position capture.", "Captures the position in the string.")
+						let element = CreateDiv("position", parent, "()", "Position capture #" + node.text + ".", "Captures the position in the string.")
 						PatternsShow(node.children, element)
 					}
 					break
