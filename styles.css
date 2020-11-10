@@ -2,8 +2,9 @@
 	background: #BCC2DA;
 	margin: 10px 10px 10px 10px;
 	max-width: 80vw;
-	padding: 5px 0px 5px 0px;
+	padding: 5px 5px 5px 5px;
 	border: 0.1px solid #73768363;
+	overflow-wrap: break-word;
 }
 
 #quantifier.token {
@@ -60,9 +61,9 @@
 
 /*======================================*/
 #input {
-	height: 35px;
-	width: 100%;
-	font-size: 20pt;
+    height: min(35px, 8vw);
+    width: 100%;
+    font-size: min(20pt, 7vw);
 	font-family: 'Roboto Mono', monospace;
 }
 
@@ -74,23 +75,29 @@
 	font-family: 'Roboto Mono', monospace;
 	background: #eee;
 	font-weight: bold;
-	margin-left: 5px;
-	margin-right: 10px;
-	padding: 0px 5px 0px 5px;
+	margin-right: 5px;
+	padding: 0px 5px 1px 5px;
 	white-space: pre;
 }
 
 .token a.name {
 	font-weight: bold;
 	margin-right: 3px;
+	display: inline-block;
 }
 
 .token a.description{
-	white-space: pre;
+	white-space: pre-wrap;
 }
 
 body {
 	font-family: 'Roboto', monospace;
+	font-size: min(12pt, 5vw);
+}
+
+#settings-compact-mode {
+	margin-left: 20px;
+	margin-right: -5px;
 }
 
 #leftside {
@@ -107,10 +114,19 @@ body {
 	border-right: 2px solid #222325;
 }
 
-#leftside p {
+#leftside p, label {
 	margin: 0px 10px 5px 10px;
 	color: #ffffff;
 	white-space: nowrap;
+}
+
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 #leftside p.center {
@@ -135,6 +151,6 @@ body {
 
 #main {
 	margin-left: 200px;
-	transition: margin-left 1s;
+	transition: 1s;
 	padding: 0px 10px;
 }
