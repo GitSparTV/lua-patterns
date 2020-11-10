@@ -260,7 +260,7 @@ const PAT = Object.freeze({
 	INVERSE: 14,
 	POSITION: 15,
 	WARNING: 16,
-	NOTE: 16,
+	NOTE: 17,
 })
 const PatToStr = [
 	"ERROR",
