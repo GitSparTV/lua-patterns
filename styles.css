@@ -1,30 +1,78 @@
 .token {
 	background: #BCC2DA;
-	margin: 10px 0px 10px 10px;
-	max-width: 70%;
+	margin: 10px 10px 10px 10px;
+	max-width: 80vw;
 	padding: 5px 0px 5px 0px;
 }
 
-#char.token {
-	background: #969696;
+#quantifier.token {
+	background: #6080ff;
 }
 
-#source {
-	height: 30px;
+#any.token {
+	background: #CF7DE7;
+}
+
+#start.token, #end.token {
+	background: #FFD742;
+}
+
+#set.token {
+	background: #d6dbec;
+}
+
+#inverse.token {
+	background: #bcd7da;
+}
+
+#frontier.token {
+	background: #9d97d4;
+}
+
+#balanced.token {
+	background: #9f74f0;
+}
+
+#capture.token, #position.token {
+	background: #a3ff8d;
+}
+
+#captureref.token {
+	background: #d7ffcd;
+}
+
+#class.token {
+	background: #A7D0E7;
+}
+
+#warning.token {
+	background: #fffc62;
+}
+
+#error.token {
+	background: #E76262;
+}
+
+/*======================================*/
+#input {
+	height: 35px;
 	width: 100%;
 	font-size: 20pt;
 	font-family: 'Roboto Mono', monospace;
 }
 
 .token a {
-	color: #141414;
+	color: #1a1a1a;
 }
 
 .token a.input {
 	font-family: 'Roboto Mono', monospace;
+	background: #eee;
 	font-weight: bold;
-	margin-left: 10px;
-	margin-right: 20px;
+	margin-left: 5px;
+	margin-right: 10px;
+	padding: 0px 5px 0px 5px;
+	white-space: pre;
 }
 
 .token a.name {
@@ -33,20 +81,16 @@
 }
 
 .token a.description{
-	
+	white-space: pre;
 }
 
 body {
 	font-family: 'Roboto', monospace;
 }
 
-:root {
-  --leftside-size: 300px;
-}
-
-.leftside {
+#leftside {
 	height: 100%;
-	width: var(--leftside-size);
+	width: 200px;
 	position: fixed;
 	z-index: 1;
 	top: 0;
@@ -54,9 +98,37 @@ body {
 	background-color: #b4b4c6;
 	overflow-x: hidden;
 	padding-top: 20px;
+	transition: 0.5s;
+	box-shadow: 0px 0px 5px 2px #363647;
 }
 
-.main {
-	margin-left: var(--leftside-size);
+#leftside p {
+	margin: 0px 10px 5px 10px;
+	white-space: nowrap;
+}
+
+#leftside p.center {
+	margin: 15px 5px 5px 5px;
+	text-align: center;
+}
+
+.closebtn {
+	position: absolute;
+	font-weight: bold;
+	font-size: 10pt;
+	color: #363647;
+	margin: 5px;
+	text-decoration: none;
+	top: 0;
+	right: 0;
+}
+
+.closebtn:hover {
+	text-decoration: underline;
+}
+
+#main {
+	margin-left: 200px;
+	transition: margin-left 1s;
 	padding: 0px 10px;
 }
