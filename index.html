@@ -38,7 +38,7 @@
 		<div style="margin: 10px 10px 0px 10px;"><img src="lua-patterns-logo.png" alt="Logo"
 				style="width: 70%; display: block; margin-left: auto; margin-right: auto;"></div>
 		<p class="center">Lua Patterns Viewer 1.1.3</p>
-		<p><br>Unimplemented:<br>- Reference Manual<br>- Match test<br>- Lua backslash escapes</p>
+		<p><br>Unimplemented:<br>- Reference Manual<br>- Match test<br>- Lua backslash escapes<br>- Unified token colors</p>
 		<div>
 			<p><br>Settings:</p>
 			<input type="checkbox" id="settings-compact-mode">
@@ -67,7 +67,7 @@
 	<span onclick="OpenLeftSide()">open info</span>
 	<div id="main">
 		<h1 style="font-size: min(2em,8vw);">Lua Patterns Viewer</h1>
-		<input id="input" spellcheck="false" autocomplete="off">
+		<div style="padding: 0px 20px 0px 0px;"><input id="input" spellcheck="false" autocomplete="off"></div>
 		<div id="result"></div>
 		<script>
 			const input = document.getElementById('input');
