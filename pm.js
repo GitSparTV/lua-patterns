@@ -69,7 +69,7 @@ class Lexer {
 	}
 
 	CheckNext(char) {
-		if (this.current == char) {
+		if (this.current === char) {
 			this.Next()
 			return true
 		}
@@ -81,7 +81,7 @@ class Lexer {
 	}
 
 	IsLast() {
-		return this.caret == this.last
+		return this.caret === this.last
 	}
 
 	AddToken(type, info) {
@@ -140,7 +140,7 @@ function ReadSet(lex) {
 	if (lex.CheckNext("^")) lex.AddToken(TOK.INVERSE);
 	do {
 		if (lex.IsEnd()) { lex.AddToken(TOK.ERROR, "malformed pattern (missing ']')"); throw new Error("") }
-		if (lex.current == "%" && lex.caret < lex.end) {
+		if (lex.current === "%" && lex.caret < lex.end) {
 			lex.Next()
 			ReadEscape(lex)
 		} else {
@@ -318,18 +318,18 @@ class Parser {
 		let token = this.tokens[this.caret + 1]
 		let token2 = this.tokens[this.caret + 2]
 
-		if (token.type == TOK.CHAR && token.string == "-" && token2.type == TOK.CHAR) return true
+		if (token.type === TOK.CHAR && token.string === "-" && token2.type === TOK.CHAR) return true
 
 		return false
 	}
 
 	IsNextRPar() {
 		if (this.IsLast()) return false
-		return this.tokens[this.caret + 1].type == TOK.RPAR
+		return this.tokens[this.caret + 1].type === TOK.RPAR
 	}
 
 	Add(node) {
-		if (this.levels.length == 0) {
+		if (this.levels.length === 0) {
 			this.nodes.push(node)
 		} else {
 			this.levels[this.levels.length - 1].Add(node)
@@ -351,7 +351,7 @@ class Parser {
 	}
 
 	IsLast() {
-		return this.caret == this.last
+		return this.caret === this.last
 	}
 }
 
@@ -373,7 +373,7 @@ function CheckQuantifier(par, parent) {
 	switch (par.current.type) {
 		case TOK.ZEROORMORE: case TOK.ONEORMORE: case TOK.ZEROORMORELAZY: case TOK.ZEROORONE:
 			new PatternObject(PAT.QUANTIFIER, parent, par.current.type)
-			if (parent.type == PAT.CHARS && parent.text.charCodeAt(0) > 255) new PatternObject(PAT.WARNING, parent, "Character \"" + parent.text + "\" (" + parent.text.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).")
+			if (parent.type === PAT.CHARS && parent.text.charCodeAt(0) > 255) new PatternObject(PAT.WARNING, parent, "Character \"" + parent.text + "\" (" + parent.text.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).")
 			par.Next()
 			return true
 		default:
@@ -386,7 +386,7 @@ function MakeString(par) {
 	do {
 		string.text += par.current.string
 		par.Next()
-	} while (!par.IsEnd() && par.current.type == TOK.CHAR && !par.IsNextQuantifier())
+	} while (!par.IsEnd() && par.current.type === TOK.CHAR && !par.IsNextQuantifier())
 
 	CheckQuantifier(par, string)
 }
@@ -394,7 +394,7 @@ function MakeString(par) {
 function MakeSet(par, parent) {
 	let set = new PatternObject(PAT.SET, parent ? parent : par)
 	par.Next()
-	if (par.current.type == TOK.INVERSE) { new PatternObject(PAT.INVERSE, set); par.Next() }
+	if (par.current.type === TOK.INVERSE) { new PatternObject(PAT.INVERSE, set); par.Next() }
 
 	do {
 		switch (par.current.type) {
@@ -416,7 +416,7 @@ function MakeSet(par, parent) {
 						string.text += par.current.string
 						if (par.current.string.charCodeAt(0) > 255) new PatternObject(PAT.WARNING, set, "Character \"" + par.current.string + "\" (" + par.current.string.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).")
 						par.Next()
-					} while (!par.IsEnd() && par.current.type == TOK.CHAR && !par.IsNextRange())
+					} while (!par.IsEnd() && par.current.type === TOK.CHAR && !par.IsNextRange())
 				}
 				break
 			case TOK.ESCAPED:
@@ -519,11 +519,11 @@ function PatternsParse(tokens) {
 					{
 						print("Captureref")
 						let obj = new PatternObject(PAT.CAPTUREREF, par, par.current.string)
-						if (par.current.string == 0) {
+						if (par.current.string === "0") {
 							new PatternObject(PAT.NOTE, obj, "Reference for capture #0 is available only in string.gsub.")
 						} else if (par.captures.length < par.current.string - 1) {
 							new PatternObject(PAT.WARNING, obj, "Reference for capture #" + par.current.string + " is not found.")
-						} else if (par.captures[par.current.string - 1].type == PAT.POSITION) {
+						} else if (par.captures[par.current.string - 1].type === PAT.POSITION) {
 							new PatternObject(PAT.NOTE, obj, "References for position captures are available only in string.gsub.")
 						}
 						par.Next()
@@ -665,13 +665,13 @@ function PatternsShow(nodes, parent) {
 				case PAT.ESCAPED:
 					{
 						let element = CreateDiv("char", parent, "%" + node.text, "Escaped character.", "Matches the character \"" + node.text + "\" literally.")
-						if (parent == basediv) { PatternsShow(node.children, element) }
+						if (parent === basediv) { PatternsShow(node.children, element) }
 					}
 					break
 				case PAT.CLASS:
 					{
 						let element = CreateDiv("class", parent, "%" + node.text, "Class (" + PAT_CLASS_NAMES[node.text][0] + ").", "Matches " + PAT_CLASS_NAMES[node.text][1] + ".")
-						if (parent == basediv) { PatternsShow(node.children, element) }
+						if (parent === basediv) { PatternsShow(node.children, element) }
 					}
 					break
 				case PAT.CAPTUREREF:
@@ -715,7 +715,7 @@ function PatternsShow(nodes, parent) {
 						let element = CreateDiv("range", parent, s + "-" + e, "Range.", "Matches any character in the range \"" + s + "\" (byte " + s.charCodeAt(0) + ") to \"" + e + "\" (byte " + e.charCodeAt(0) + ").")
 						if (s > e) {
 							CreateDiv("warning", element, "?", "Warning.", "The range won't match anything because the start of the range is greater than the end (\"" + s + "\" (" + s.charCodeAt(0) + ") > \"" + e + "\" (" + e.charCodeAt(0) + ")).")
-						} else if (s == e) {
+						} else if (s === e) {
 							CreateDiv("note", element, "i", "Note.", "The range has range of one character. Consider using regular char instead.")
 						}
 					}
