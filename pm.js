@@ -260,6 +260,7 @@ const PAT = Object.freeze({
 	INVERSE: 14,
 	POSITION: 15,
 	WARNING: 16,
+	NOTE: 16,
 })
 const PatToStr = [
 	"ERROR",
@@ -278,7 +279,8 @@ const PatToStr = [
 	"RANGE",
 	"INVERSE",
 	"POSITION",
-	"WARNING"
+	"WARNING",
+	"NOTE"
 ]
 
 class Parser {
@@ -290,7 +292,7 @@ class Parser {
 		this.current = tokens[0]
 		this.nodes = []
 		this.levels = []
-		this.captures = 0
+		this.captures = []
 		this.rem = null
 	}
 
@@ -371,6 +373,7 @@ function CheckQuantifier(par, parent) {
 	switch (par.current.type) {
 		case TOK.ZEROORMORE: case TOK.ONEORMORE: case TOK.ZEROORMORELAZY: case TOK.ZEROORONE:
 			new PatternObject(PAT.QUANTIFIER, parent, par.current.type)
+			if (parent.type == PAT.CHARS && parent.text.charCodeAt(0) > 255)  new PatternObject(PAT.WARNING, parent, "Character \"" + parent.text + "\" (" + parent.text.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).")
 			par.Next()
 			return true
 		default:
@@ -405,18 +408,20 @@ function MakeSet(par, parent) {
 					par.Next()
 					par.Next()
 					new PatternObject(PAT.RANGE, set, string + par.current.string)
+					if (string.charCodeAt(0) > 255 || par.current.string.charCodeAt(0) > 255) new PatternObject(PAT.WARNING, set, "Range \"" + string + "\" (" + string.charCodeAt(0) + ") - \"" + par.current.string + "\" (" + par.current.string.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).") 
 					par.Next()
 				} else {
 					let string = new PatternObject(PAT.CHARS, set, "")
 					do {
 						string.text += par.current.string
+						if (par.current.string.charCodeAt(0) > 255) new PatternObject(PAT.WARNING, set, "Character \"" + par.current.string + "\" (" + par.current.string.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).")
 						par.Next()
-
 					} while (!par.IsEnd() && par.current.type == TOK.CHAR && !par.IsNextRange())
 				}
 				break
 			case TOK.ESCAPED:
 				new PatternObject(PAT.ESCAPED, set, par.current.string)
+				if (par.current.string.charCodeAt(0) > 255) new PatternObject(PAT.WARNING, set, "Character \"" + par.current.string + "\" (" + par.current.string.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).")
 				par.Next()
 				break
 			case TOK.ERROR:
@@ -491,6 +496,7 @@ function PatternsParse(tokens) {
 					{
 						print("escaped")
 						let obj = new PatternObject(PAT.ESCAPED, par, par.current.string)
+						if (par.current.string.charCodeAt(0) > 255) new PatternObject(PAT.WARNING, obj, "Character \"" + par.current.string + "\" (" + par.current.string.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).")
 						par.Next()
 						CheckQuantifier(par, obj)
 					}
@@ -514,9 +520,11 @@ function PatternsParse(tokens) {
 						print("Captureref")
 						let obj = new PatternObject(PAT.CAPTUREREF, par, par.current.string)
 						if (par.current.string == 0) {
-							new PatternObject(PAT.WARNING, obj, "Reference for capture #0 is available only in string.gsub.")
+							new PatternObject(PAT.NOTE, obj, "Reference for capture #0 is available only in string.gsub.")
 						} else if (par.captures < par.current.string) {
 							new PatternObject(PAT.WARNING, obj, "Reference for capture #" + par.current.string + " is not found.")
+						} else if (par.captures[par.current.string.toNumber()].type == TOK.POSITION) {
+							new PatternObject(PAT.NOTE, obj, "Reference for position capture #" + par.current.string + " is available only in string.gsub.")
 						}
 						par.Next()
 					}
@@ -545,12 +553,13 @@ function PatternsParse(tokens) {
 				default:
 					{
 						print("unknown", par.current)
+						new PatternObject(PAT.ERROR, par, "Unknown pattern, check console.")
 						par.Next()
 					}
 					break
 			}
 		}
-		if (par.levels.length != 0) throw new Error("Unfinished capture #" + par.levels.length + "")
+		if (par.levels.length != 0) throw new Error("Unfinished capture #" + par.captures+1 + "")
 	} catch (e) {
 		console.log(e.name + ": " + e.message)
 		par.levels.length = 0
@@ -560,7 +569,7 @@ function PatternsParse(tokens) {
 	return par.nodes
 }
 
-basediv = null
+let basediv = null
 function CreateDiv(type, parent, text, name, description) {
 	let element = document.createElement("div");
 	let p = document.createElement("a")
@@ -705,9 +714,9 @@ function PatternsShow(nodes, parent) {
 						let s = node.text.charAt(0), e = node.text.charAt(1)
 						let element = CreateDiv("range", parent, s + "-" + e, "Range.", "Matches any character in the range \"" + s + "\" (byte " + s.charCodeAt(0) + ") to \"" + e + "\" (byte " + e.charCodeAt(0) + ").")
 						if (s > e) {
-							CreateDiv("warning", element, "?", "Warning.", "The range won't match anything because the start of the range is greater than the end (\"" + s + "\" (" + s.charCodeAt(0) + ") > \"" + e + "\" (" + s.charCodeAt(0) + ")).")
+							CreateDiv("warning", element, "?", "Warning.", "The range won't match anything because the start of the range is greater than the end (\"" + s + "\" (" + s.charCodeAt(0) + ") > \"" + e + "\" (" + e.charCodeAt(0) + ")).")
 						} else if (s == e) {
-							CreateDiv("warning", element, "?", "Warning.", "The range has range of one character. Consider using regular char instead.")
+							CreateDiv("note", element, "i", "Note.", "The range has range of one character. Consider using regular char instead.")
 						}
 					}
 					break
@@ -719,6 +728,11 @@ function PatternsShow(nodes, parent) {
 				case PAT.WARNING:
 					{
 						CreateDiv("warning", parent, "?", "Warning.", node.text)
+					}
+					break
+				case PAT.NOTE:
+					{
+						CreateDiv("note", parent, "i", "Note.", node.text)
 					}
 					break
 				case PAT.ERROR:

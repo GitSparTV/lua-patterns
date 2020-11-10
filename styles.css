@@ -3,6 +3,7 @@
 	margin: 10px 10px 10px 10px;
 	max-width: 80vw;
 	padding: 5px 0px 5px 0px;
+	border: 0.1px solid #73768363;
 }
 
 #quantifier.token {
@@ -47,6 +48,10 @@
 
 #warning.token {
 	background: #fffc62;
+}
+
+#note.token {
+	background: #62b3ff;
 }
 
 #error.token {
