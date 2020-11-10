@@ -1,26 +1,45 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<script src="pm.js"></script>
+		<script src="pm.js"></script> 
+		<script>
+			function OpenLeftSide() {
+			  document.getElementById("leftside").style.width = "200px";
+			  document.getElementById("main").style.marginLeft = "200px";
+			}
+
+			function CloseLeftSide() {
+			  document.getElementById("leftside").style.width = "0";
+			  document.getElementById("main").style.marginLeft = "0";
+			}
+		</script>
 		<link rel="stylesheet" href="styles.css">
 		<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&display=swap" rel="stylesheet">
 		<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 	</head>
 	<body>
-		<div class="leftside"></div>
-		<div class="main">
-			<h1>Lua Patterns Viewer</h1>
-			<input id="source" spellcheck="false">
-			<div id="result"></div>
-			<script>
-				const source = document.getElementById('source');
+		<div id="leftside">
+			<a href="javascript:void(0)" class="closebtn" onclick="CloseLeftSide()">Hide</a>
+			<p class="center">Lua Patterns Viewer 1.0</p><p><br>Unimplemented:<br>- Reference Manual<br>- Match test<br>- Lua backslash escapes<br>- Unicode ignore</p><div style="width: 100%;bottom:0;position:absolute;margin-bottom: 15%;"><p class="center">Made by Spar.<br><a href="https://github.com/GitSparTV/lua-patterns" style="text-decoration: none; font-weight: bold;">GitHub repo</a></p></div>
+        </div>
+		<span onclick="OpenLeftSide()">open info</span>
+		<div id="main">
+		  <h1>Lua Patterns Viewer</h1>
+		  <input id="input" spellcheck="false" autocomplete="off">
+		  <div id="result"></div>
+		  <script>
+				const input = document.getElementById('input');
 
 				const inputHandler = function(e) {
-					ParsePattern(e.target.value)
+					PatternsPrint(e.target.value)
 				}
-				source.addEventListener('input', inputHandler);
-				ParsePattern("he%s+l[abc]%f[[]lo")
-			</script>
+				input.addEventListener('input', inputHandler);
+				input.focus();
+				input.select();
+				let showcase = "^^charsq+w-e*r?.%.(%a%c%d%g%l%p%s%u%w%x%z%A)[asd]%f[^not]%1%b{}[%]a-z]$$"
+				input.value = showcase
+				PatternsPrint(showcase)
+			</script> 
 		</div>
 	</body>
 </html>
