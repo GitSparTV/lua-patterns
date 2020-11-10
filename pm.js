@@ -373,7 +373,7 @@ function CheckQuantifier(par, parent) {
 	switch (par.current.type) {
 		case TOK.ZEROORMORE: case TOK.ONEORMORE: case TOK.ZEROORMORELAZY: case TOK.ZEROORONE:
 			new PatternObject(PAT.QUANTIFIER, parent, par.current.type)
-			if (parent.type == PAT.CHARS && parent.text.charCodeAt(0) > 255)  new PatternObject(PAT.WARNING, parent, "Character \"" + parent.text + "\" (" + parent.text.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).")
+			if (parent.type == PAT.CHARS && parent.text.charCodeAt(0) > 255) new PatternObject(PAT.WARNING, parent, "Character \"" + parent.text + "\" (" + parent.text.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).")
 			par.Next()
 			return true
 		default:
@@ -408,7 +408,7 @@ function MakeSet(par, parent) {
 					par.Next()
 					par.Next()
 					new PatternObject(PAT.RANGE, set, string + par.current.string)
-					if (string.charCodeAt(0) > 255 || par.current.string.charCodeAt(0) > 255) new PatternObject(PAT.WARNING, set, "Range \"" + string + "\" (" + string.charCodeAt(0) + ") - \"" + par.current.string + "\" (" + par.current.string.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).") 
+					if (string.charCodeAt(0) > 255 || par.current.string.charCodeAt(0) > 255) new PatternObject(PAT.WARNING, set, "Range \"" + string + "\" (" + string.charCodeAt(0) + ") - \"" + par.current.string + "\" (" + par.current.string.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).")
 					par.Next()
 				} else {
 					let string = new PatternObject(PAT.CHARS, set, "")
