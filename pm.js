@@ -517,13 +517,33 @@ function PatternsParse(tokens) {
 						CheckQuantifier(par, obj)
 					}
 					break
+				case TOK.LPAR:
+					{
+						print("(")
+						if (par.IsNextRPar()) {
+							par.captures.push(new PatternObject(PAT.POSITION, par, par.captures.length + 1))
+							par.Next()
+							par.Next()
+						} else {
+							par.StartCapture()
+						}
+						par.Next()
+					}
+					break
+				case TOK.RPAR:
+					{
+						print(")")
+						par.EndCapture()
+						par.Next()
+					}
+					break
 				case TOK.CAPTUREREF:
 					{
 						print("Captureref")
 						let obj = new PatternObject(PAT.CAPTUREREF, par, par.current.string)
 						if (par.current.string === "0") {
 							new PatternObject(PAT.NOTE, obj, "Reference for capture #0 is available only in string.gsub.")
-						} else if (par.captures.length < par.current.string - 1) {
+						} else if (par.captures.length < par.current.string) {
 							new PatternObject(PAT.WARNING, obj, "Reference for capture #" + par.current.string + " is not found.")
 						} else if (par.captures[par.current.string - 1].type === PAT.POSITION) {
 							new PatternObject(PAT.NOTE, obj, "References for position captures are available only in string.gsub.")
