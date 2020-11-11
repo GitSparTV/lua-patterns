@@ -125,7 +125,7 @@ function ReadQuantity(lex) {
 }
 
 function ReadEscape(lex) {
-	if (lex.IsEnd()) { lex.AddToken(TOK.ERROR, "malformed pattern (ends with '%')"); throw new Error("") }
+	if (lex.IsEnd()) { lex.AddToken(TOK.ERROR, "Unfinished escape. Finish \"%\" with class or escape character or use \"%%\" to match \"%\" as character."); throw new Error("") }
 	if (MatchClass(lex.current)) {
 		lex.AddToken(TOK.CLASS, lex.current)
 	} else {
@@ -139,7 +139,7 @@ function ReadSet(lex) {
 	lex.Next()
 	if (lex.CheckNext("^")) lex.AddToken(TOK.INVERSE);
 	do {
-		if (lex.IsEnd()) { lex.AddToken(TOK.ERROR, "malformed pattern (missing ']')"); throw new Error("") }
+		if (lex.IsEnd()) { lex.AddToken(TOK.ERROR, "Missing \"]\" to close set."); throw new Error("") }
 		if (lex.current === "%" && lex.caret < lex.end) {
 			lex.Next()
 			ReadEscape(lex)
@@ -188,7 +188,7 @@ function PatternsLex(input) {
 					print("%", lex.current)
 					switch (lex.current) {
 						case "b":
-							if (lex.caret + 2 >= lex.end) { lex.AddToken(TOK.ERROR, "malformed pattern (missing arguments to '%b')"); throw new Error(""); }
+							if (lex.caret + 2 >= lex.end) { lex.AddToken(TOK.ERROR, "Missing characters for \"%b\" pattern. Example: \"%b()\"."); throw new Error(""); }
 							lex.AddToken(TOK.BALANCED, lex.Sub(lex.caret + 1, lex.caret + 3))
 							lex.Next()
 							lex.Next()
@@ -196,7 +196,7 @@ function PatternsLex(input) {
 							break
 						case "f":
 							lex.Next()
-							if (lex.current != "[") { lex.AddToken(TOK.ERROR, "missing '[' after '%f' in pattern"); throw new Error(""); }
+							if (lex.current != "[") { lex.AddToken(TOK.ERROR, "Missing \"[\" after \"%f\" in pattern. Example: \"%f[%w]\"."); throw new Error(""); }
 							lex.AddToken(TOK.FRONTIER)
 							ReadSet(lex)
 							break
