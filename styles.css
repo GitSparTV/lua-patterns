@@ -150,8 +150,8 @@ body {
 }
 
 #main {
-	left: 0px;
+	margin-left: 200px;
 	position: relative;
-	transition: left 1s;
+	transition: margin-left 1s;
 	padding: 0px 10px;
 }
