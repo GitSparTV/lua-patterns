@@ -443,20 +443,6 @@ function PatternsParse(tokens) {
 	try {
 		while (!par.IsEnd()) {
 			switch (par.current.type) {
-				case TOK.START:
-					{
-						print("^")
-						new PatternObject(PAT.START, par)
-						par.Next()
-					}
-					break
-				case TOK.END:
-					{
-						print("$")
-						new PatternObject(PAT.END, par)
-						par.Next()
-					}
-					break
 				case TOK.ANY:
 					{
 						print(".")
@@ -472,26 +458,6 @@ function PatternsParse(tokens) {
 					{
 						print("char")
 						MakeString(par)
-					}
-					break
-				case TOK.LPAR:
-					{
-						print("(")
-						if (par.IsNextRPar()) {
-							par.captures.push(new PatternObject(PAT.POSITION, par, par.captures.length + 1))
-							par.Next()
-							par.Next()
-						} else {
-							par.StartCapture()
-						}
-						par.Next()
-					}
-					break
-				case TOK.RPAR:
-					{
-						print(")")
-						par.EndCapture()
-						par.Next()
 					}
 					break
 				case TOK.ESCAPED:
@@ -572,6 +538,20 @@ function PatternsParse(tokens) {
 						par.Next()
 					}
 					break
+				case TOK.START:
+					{
+						print("^")
+						new PatternObject(PAT.START, par)
+						par.Next()
+					}
+					break
+				case TOK.END:
+					{
+						print("$")
+						new PatternObject(PAT.END, par)
+						par.Next()
+					}
+					break
 				default:
 					{
 						print("unknown", par.current)
@@ -581,7 +561,7 @@ function PatternsParse(tokens) {
 					break
 			}
 		}
-		if (par.levels.length != 0) throw new Error("Unfinished capture #" + par.captures.length + "")
+		if (par.levels.length != 0) throw new Error("Unfinished capture #" + par.captures.length + ". \")\" is missing.")
 	} catch (e) {
 		console.log(e.name + ": " + e.message)
 		par.levels.length = 0
@@ -663,6 +643,13 @@ function PatternsShow(nodes, parent) {
 						PatternsShow(node.children, element)
 					}
 					break
+				case PAT.SETCHARS:
+					{
+						let len = node.text.length
+						let element = CreateDiv("char", parent, node.text, "Character.", (parent.id === "inverseset" ? "Doesn't match \"" : "Matches \"") + node.text + "\" literally.")
+						PatternsShow(node.children, element)
+					}
+					break
 				case PAT.QUANTIFIER:
 					{
 						let element = CreateDiv("quantifier", parent, PAT_QUANTIFIER_NAMES[node.text][0], "Quantifier (" + PAT_QUANTIFIER_NAMES[node.text][1] + ").", PAT_QUANTIFIER_NAMES[node.text][2])
@@ -710,7 +697,13 @@ function PatternsShow(nodes, parent) {
 					break
 				case PAT.SET:
 					{
-						let element = CreateDiv("set", parent, "[...]", "Set.", "Matches any character from the set.")
+						let element = CreateDiv("set", parent, "[...]", "Set.", "Matches any character from the set:")
+						PatternsShow(node.children, element)
+					}
+					break
+				case PAT.INVERSESET:
+					{
+						let element = CreateDiv("inverseset", parent, "[^...]", "Inverse set.", "Matches any character except:")
 						PatternsShow(node.children, element)
 					}
 					break
@@ -728,7 +721,7 @@ function PatternsShow(nodes, parent) {
 					break
 				case PAT.FRONTIER:
 					{
-						let element = CreateDiv("frontier", parent, "%f", "Frontier.", "Matches any character from the set when the previous character doesn't match it.")
+						let element = CreateDiv("frontier", parent, "%f", "Frontier.", "Matches any character from the set when the previous character doesn't match it. Can match start and end boundaries of the string.")
 						PatternsShow(node.children, element)
 					}
 					break
@@ -741,11 +734,6 @@ function PatternsShow(nodes, parent) {
 						} else if (s === e) {
 							CreateDiv("note", element, "i", "Note.", "The range has range of one character. Consider using regular char instead.")
 						}
-					}
-					break
-				case PAT.INVERSE:
-					{
-						CreateDiv("inverse", parent, "^", "Inverse set.", "Inverses the set.")
 					}
 					break
 				case PAT.WARNING:
