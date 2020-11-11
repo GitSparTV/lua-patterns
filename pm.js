@@ -662,16 +662,6 @@ function PatternsShow(nodes, parent) {
 						PatternsShow(node.children, element)
 					}
 					break
-				case PAT.START:
-					{
-						let element = CreateDiv("start", parent, "^", "Start anchor.", "Tells to match the pattern only if it starts from the beginning of the string.")
-					}
-					break
-				case PAT.END:
-					{
-						let element = CreateDiv("end", parent, "&", "End anchor.", "Tells to match the pattern only if it ends at the end of the string.")
-					}
-					break
 				case PAT.ESCAPED:
 					{
 						let element = CreateDiv("char", parent, "%" + node.text, "Escaped character.", "Matches the character \"" + node.text + "\" literally.")
@@ -734,6 +724,16 @@ function PatternsShow(nodes, parent) {
 						} else if (s === e) {
 							CreateDiv("note", element, "i", "Note.", "The range has range of one character. Consider using regular char instead.")
 						}
+					}
+					break
+				case PAT.START:
+					{
+						let element = CreateDiv("start", parent, "^", "Start anchor.", "Tells to match the pattern only if it starts from the beginning of the string.")
+					}
+					break
+				case PAT.END:
+					{
+						let element = CreateDiv("end", parent, "$", "End anchor.", "Tells to match the pattern only if it ends at the end of the string.")
 					}
 					break
 				case PAT.WARNING:
