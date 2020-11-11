@@ -257,10 +257,11 @@ const PAT = Object.freeze({
 	CAPTURE: 11,
 	FRONTIER: 12,
 	RANGE: 13,
-	INVERSE: 14,
+	INVERSESET: 14,
 	POSITION: 15,
 	WARNING: 16,
 	NOTE: 17,
+	SETCHARS: 18,
 })
 const PatToStr = [
 	"ERROR",
@@ -277,10 +278,11 @@ const PatToStr = [
 	"CAPTURE",
 	"FRONTIER",
 	"RANGE",
-	"INVERSE",
+	"INVERSESET",
 	"POSITION",
 	"WARNING",
-	"NOTE"
+	"NOTE",
+	"SETCHARS",
 ]
 
 class Parser {
@@ -392,9 +394,9 @@ function MakeString(par) {
 }
 
 function MakeSet(par, parent) {
-	let set = new PatternObject(PAT.SET, parent ? parent : par)
+	let set
 	par.Next()
-	if (par.current.type === TOK.INVERSE) { new PatternObject(PAT.INVERSE, set); par.Next() }
+	if (par.current.type === TOK.INVERSE) { set = new PatternObject(PAT.INVERSESET, parent ? parent : par); par.Next() } else { set = new PatternObject(PAT.SET, parent ? parent : par) }
 
 	do {
 		switch (par.current.type) {
@@ -411,12 +413,9 @@ function MakeSet(par, parent) {
 					if (string.charCodeAt(0) > 255 || par.current.string.charCodeAt(0) > 255) new PatternObject(PAT.WARNING, set, "Range \"" + string + "\" (" + string.charCodeAt(0) + ") - \"" + par.current.string + "\" (" + par.current.string.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).")
 					par.Next()
 				} else {
-					let string = new PatternObject(PAT.CHARS, set, "")
-					do {
-						string.text += par.current.string
-						if (par.current.string.charCodeAt(0) > 255) new PatternObject(PAT.WARNING, set, "Character \"" + par.current.string + "\" (" + par.current.string.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).")
-						par.Next()
-					} while (!par.IsEnd() && par.current.type === TOK.CHAR && !par.IsNextRange())
+					let string = new PatternObject(PAT.SETCHARS, set, par.current.string)
+					if (par.current.string.charCodeAt(0) > 255) new PatternObject(PAT.WARNING, set, "Character \"" + par.current.string + "\" (" + par.current.string.charCodeAt(0) + ") is outside ASCII range. It will be interpreted incorrectly (as separate parts of the symbol).")
+					par.Next()
 				}
 				break
 			case TOK.ESCAPED:
