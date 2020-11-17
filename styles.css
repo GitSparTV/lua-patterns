@@ -102,7 +102,7 @@ body {
 
 #leftside {
 	height: 100%;
-	width: 200px;
+	width: 250px;
 	position: fixed;
 	z-index: 1;
 	top: 0;
@@ -150,7 +150,7 @@ body {
 }
 
 #main {
-	margin-left: 200px;
+	margin-left: 250px;
 	position: relative;
 	transition: margin-left 1s;
 	padding: 0px 10px;
