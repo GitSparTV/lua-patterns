@@ -45,21 +45,19 @@
 			<p><br>Settings:</p>
 			<input type="checkbox" id="settings-compact-mode">
 			<script>
-				let settings_compact_mode = document.getElementById("settings-compact-mode")
-				settings_compact_mode.checked = localStorage.getItem("settings-compact-mode") === "true"
-				settings_compact_mode.addEventListener('change', function() {
-					localStorage.setItem("settings-compact-mode", this.checked)
-					let elements = document.getElementsByClassName("description")
-					if (this.checked) {
-						for (let element of elements) {
-							element.style.display = 'none'
-						}
+				const body = document.querySelector("body")
+				const settings_compact_mode = document.getElementById("settings-compact-mode")
+				const pick_compact = ({target: checkbox}) => {
+					localStorage.setItem("settings-compact-mode", checkbox.checked)
+					if (checkbox.checked) {
+						body.classList.add("compact")
 					} else {
-						for (let element of elements) {
-							element.style.display = 'inline'
-						}
+						body.classList.remove("compact")
 					}
-				});
+				}
+				settings_compact_mode.checked = localStorage.getItem("settings-compact-mode") === "true"
+				settings_compact_mode.addEventListener('change', pick_compact)
+				pick_compact({target: settings_compact_mode})
 			</script>
 			<label for="settings-compact-mode" class="unselectable">Compact mode</label>
 		</div>

@@ -86,6 +86,10 @@
 	display: inline-block;
 }
 
+.compact .description {
+	display: none;
+}
+
 .token a.description{
 	white-space: pre-wrap;
 }
