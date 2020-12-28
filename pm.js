@@ -588,7 +588,6 @@ function CreateDiv(type, parent, text, name, description) {
 	element.appendChild(p)
 	element.appendChild(nname)
 	element.appendChild(ndescription)
-	if (document.getElementById("settings-compact-mode").checked) ndescription.style.display = 'none'
 	parent.appendChild(element)
 
 	return element
