@@ -583,8 +583,7 @@ function CreateDiv(type, parent, text, name, description) {
 	let ndescription = document.createElement("a")
 	ndescription.className = "description"
 	ndescription.appendChild(document.createTextNode(description))
-	element.className = "token"
-	element.id = type
+	element.classList.add("token", ...type.split(" "))
 	element.appendChild(p)
 	element.appendChild(nname)
 	element.appendChild(ndescription)
@@ -645,7 +644,7 @@ function PatternsShow(nodes, parent) {
 				case PAT.SETCHARS:
 					{
 						let len = node.text.length
-						let element = CreateDiv("char", parent, node.text, "Character.", (parent.id === "inverseset" ? "Doesn't match \"" : "Matches \"") + node.text + "\" literally.")
+						let element = CreateDiv("char", parent, node.text, "Character.", (parent.classList.contains("inverse") ? "Doesn't match \"" : "Matches \"") + node.text + "\" literally.")
 						PatternsShow(node.children, element)
 					}
 					break
@@ -692,7 +691,7 @@ function PatternsShow(nodes, parent) {
 					break
 				case PAT.INVERSESET:
 					{
-						let element = CreateDiv("inverseset", parent, "[^...]", "Inverse set.", "Matches any character except:")
+						let element = CreateDiv("inverse set", parent, "[^...]", "Inverse set.", "Matches any character except:")
 						PatternsShow(node.children, element)
 					}
 					break
