@@ -7,55 +7,55 @@
 	overflow-wrap: break-word;
 }
 
-#quantifier.token {
+.token.quantifier {
 	background: #6080ff;
 }
 
-#any.token {
+.token.any {
 	background: #CF7DE7;
 }
 
-#start.token, #end.token {
+.token.start, .token.end {
 	background: #FFD742;
 }
 
-#set.token {
+.token.set {
 	background: #d6dbec;
 }
 
-#inverseset.token {
+.token.inverseset {
 	background: #bcd7da;
 }
 
-#frontier.token {
+.token.frontier {
 	background: #9d97d4;
 }
 
-#balanced.token {
+.token.balanced {
 	background: #9f74f0;
 }
 
-#capture.token, #position.token {
+.token.capture, .token.position {
 	background: #a3ff8d;
 }
 
-#captureref.token {
+.token.captureref {
 	background: #d7ffcd;
 }
 
-#class.token {
+.token.class {
 	background: #A7D0E7;
 }
 
-#warning.token {
+.token.warning {
 	background: #fffc62;
 }
 
-#note.token {
+.token.note {
 	background: #62b3ff;
 }
 
-#error.token {
+.token.error {
 	background: #E76262;
 }
 
