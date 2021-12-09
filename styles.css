@@ -155,3 +155,73 @@ body {
 	transition: margin-left 1s;
 	padding: 0px 10px;
 }
+
+.mytest {
+  font-size: 30px;
+}
+
+.parenthesis0 {
+  background-color: rgba(0, 47, 255, 0.5);
+}
+.parenthesis1 {
+  background-color: rgba(173, 209, 230, 0.5);
+}
+
+.parenthesis2 {
+  background-color: rgba(131, 5, 131, 0.5);
+}
+
+.parenthesis3 {
+  background-color: rgba(255, 182, 194, 0.5);
+}
+
+.caret0 {
+  background-color: rgba(238, 255, 0, 0.87);
+}
+
+.caret1 {
+  background-color: rgba(243, 194, 60, 0.5);
+}
+
+.square0 {
+  background-color: rgba(213, 60, 243, 0.5);
+}
+
+.frontier0 {
+  background-color: rgba(243, 43, 8, 0.651);
+}
+
+.captureReference0 {
+  background-color: rgba(8, 243, 204, 0.651);
+}
+.chars0 {
+  background-color: rgba(243, 169, 8, 0.651);
+}
+
+.quantifier0 {
+  background-color: rgba(8, 118, 243, 0.582);
+}
+
+.any0 {
+  background-color: rgba(255, 0, 234, 0.774);
+}
+
+.capture0 {
+  background-color: rgba(0, 255, 21, 0.856);
+}
+
+.captureReference0 {
+  background-color: rgba(7, 255, 90, 0.548);
+}
+
+.balanced0 {
+  background-color: rgba(183, 0, 255, 0.733);
+}
+
+.end0 {
+  background-color: rgba(238, 255, 0, 0.87);
+}
+
+.scaped0 {
+  background-color: rgba(146, 146, 146, 0.904);
+}
